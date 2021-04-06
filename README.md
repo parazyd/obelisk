@@ -3,8 +3,15 @@ obelisk
 
 ![obelisk](res/obelisk.png)
 
-A **work-in-progress** implementation of an Electrum server using
+A **work-in-progress** implementation of an
+[Electrum](https://electrum.org) server using
 [libbitcoin](https://libbitcoin.info) as a backend.
+
+Please consider donating to support development:
+
+```
+bc1q7an9p5pz6pjwjk4r48zke2yfaevafzpglg26mz
+```
 
 
 TODO
