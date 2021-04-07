@@ -172,16 +172,10 @@ class RequestCollection:
 
 
 class Client:
-    """This class represents a connection to a libbitcoin server.
-    hostname -- the server DNS name to connect to
-    ports -- a dictionary containing four keys; query/heartbeat/block/tx
-    """
-
-    # def __init__(self, hostname, ports, settings=ClientSettings()):
-    def __init__(self, hostname, ports, loop):
-        self._hostname = hostname
-        self._ports = ports
-        # self._settings = settings
+    """This class represents a connection to a libbitcoin server."""
+    def __init__(self, log, endpoints, loop):
+        self.log = log
+        self._endpoints = endpoints
         self._settings = ClientSettings(loop=loop)
         self._query_socket = self._create_query_socket()
         self._block_socket = self._create_block_socket()
@@ -198,7 +192,7 @@ class Client:
             zmq.SUB,  # pylint: disable=E1101
             io_loop=self._settings._loop,  # pylint: disable=W0212
         )
-        socket.connect(self.__server_url(self._hostname, self._ports["block"]))
+        socket.connect(self._endpoints["block"])
         socket.setsockopt_string(zmq.SUBSCRIBE, "")  # pylint: disable=E1101
         return socket
 
@@ -207,7 +201,7 @@ class Client:
             zmq.DEALER,  # pylint: disable=E1101
             io_loop=self._settings._loop,  # pylint: disable=W0212
         )
-        socket.connect(self.__server_url(self._hostname, self._ports["query"]))
+        socket.connect(self._endpoints["query"])
         return socket
 
     async def _subscription_request(self, command, data):
@@ -240,7 +234,3 @@ class Client:
         assert response.command == request.command
         assert response.request_id == request.id_
         return response.error_code, response.data
-
-    @staticmethod
-    def __server_url(hostname, port):
-        return "tcp://" + hostname + ":" + str(port)

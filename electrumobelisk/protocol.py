@@ -17,6 +17,8 @@
 import asyncio
 import json
 
+from zeromq import Client
+
 VERSION = 0.0
 DONATION_ADDR = "bc1q7an9p5pz6pjwjk4r48zke2yfaevafzpglg26mz"
 
@@ -38,6 +40,9 @@ class ElectrumProtocol(asyncio.Protocol):
         self.log = log
         self.endpoints = endpoints
         self.server_cfg = server_cfg
+        self.loop = asyncio.get_event_loop()
+        # Consider renaming bx to something else
+        self.bx = Client(log, endpoints, self.loop)
 
         if chain == "mainnet":
             self.genesis = "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
