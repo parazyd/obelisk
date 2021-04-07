@@ -330,7 +330,25 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         return {"result": DONATION_ADDR}
 
     async def server_features(self, query):
-        return
+        cfg = self.server_cfg
+        return {
+            "result": {
+                "genesis_hash": self.genesis,
+                "hosts": {
+                    cfg["server_hostname"]: {
+                        "tcp_port":
+                        None if cfg["using_tls"] else cfg["server_port"],
+                        "ssl_port":
+                        cfg["server_port"] if cfg["using_tls"] else None,
+                    },
+                },
+                "protocol_max": SERVER_PROTO_MAX,
+                "protocol_min": SERVER_PROTO_MIN,
+                "pruning": None,
+                "server_version": f"obelisk {VERSION}",
+                "hash_function": "sha256",
+            }
+        }
 
     async def server_peers_subscribe(self, query):  # pylint: disable=W0613
         # Help wanted

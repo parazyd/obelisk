@@ -75,8 +75,9 @@ async def run_electrum_server(config, chain):
     log = getLogger("obelisk")
     host = config.get("obelisk", "host")
     port = int(config.get("obelisk", "port"))
+    usetls = config.getboolean("obelisk", "usetls", fallback=False)
 
-    if config.getboolean("obelisk", "usetls", fallback=True):
+    if usetls:
         certfile, keyfile = get_certs(config)
         log.debug("Using TLS with keypair: %s , %s", certfile, keyfile)
 
@@ -95,6 +96,9 @@ async def run_electrum_server(config, chain):
     server_cfg = {}
     server_cfg["torhostport"] = (tor_host, tor_port)
     server_cfg["broadcast_method"] = broadcast_method
+    server_cfg["server_hostname"] = "localhost"  # TODO: <- should be public?
+    server_cfg["server_port"] = port
+    server_cfg["using_tls"] = usetls
 
     protocol = ElectrumProtocol(log, chain, endpoints, server_cfg)
 
