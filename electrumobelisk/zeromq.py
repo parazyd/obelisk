@@ -34,6 +34,7 @@ def create_random_id():
 
 
 def pack_block_index(index):
+    """struct.pack given index"""
     if isinstance(index, str):
         index = unhexlify(index)
         assert len(index) == 32
@@ -47,6 +48,7 @@ def pack_block_index(index):
 
 
 def unpack_table(row_fmt, data):
+    """Function to unpack table received from libbitcoin"""
     # Get the number of rows
     row_size = struct.calcsize(row_fmt)
     nrows = len(data) // row_size

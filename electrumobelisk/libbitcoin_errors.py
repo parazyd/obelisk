@@ -14,7 +14,8 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import enum
+"""Enumerated error codes that can be returned by libbitcoin"""
+from enum import Enum
 
 
 def make_error_code(ec):
@@ -24,7 +25,7 @@ def make_error_code(ec):
     return ErrorCode(ec)
 
 
-class ErrorCode(enum.Enum):
+class ErrorCode(Enum):
     """libbitcoin error codes"""
 
     # general codes

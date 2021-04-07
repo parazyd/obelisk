@@ -14,6 +14,9 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""Implementation of the Electrum protocol as found on
+https://electrumx-spesmilo.readthedocs.io/en/latest/protocol-methods.html
+"""
 import asyncio
 import json
 from binascii import unhexlify
@@ -63,7 +66,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         else:
             raise ValueError(f"Invalid chain '{chain}'")
 
-        # https://electrumx-spesmilo.readthedocs.io/en/latest/protocol-methods.html
+        # Here we map available methods to their respective functions
         self.methodmap = {
             "blockchain.block.header": self.blockchain_block_header,
             "blockchain.block.headers": self.blockchain_block_headers,
@@ -72,6 +75,8 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
             "blockchain.relayfee": self.blockchain_relayfee,
             "blockchain.scripthash.get_balance":
             self.blockchain_scripthash_get_balance,
+            "blockchain.scripthash.get_history":
+            self.blockchain_scripthash_get_history,
             "blockchain.scripthash.get_mempool":
             self.blockchain_scripthash_get_mempool,
             "blockchain.scripthash.listunspent":
@@ -98,11 +103,13 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         }
 
     async def stop(self):
+        """Destructor function"""
         self.log.debug("ElectrumProtocol.stop()")
         if self.bx:
             await self.bx.stop()
 
     async def recv(self, reader, writer):
+        """Loop ran upon a connection which acts as a JSON-RPC handler"""
         recv_buf = bytearray()
         while True:
             data = await reader.read(4096)
@@ -127,6 +134,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
                 await self.handle_query(writer, query)
 
     async def _send_response(self, writer, result, nid):
+        """Send successful JSON-RPC response to given writer"""
         response = {"jsonrpc": "2.0", "result": result, "id": nid}
         self.log.debug("<= %s", response)
         writer.write(json.dumps(response).encode("utf-8"))
@@ -134,6 +142,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         # writer.close()
 
     async def _send_error(self, writer, error, nid):
+        """Send JSON-RPC error to given writer"""
         response = {"jsonrpc": "2.0", "error": error, "id": nid}
         self.log.debug("<= %s", response)
         writer.write(json.dumps(response).encode("utf-8"))
@@ -147,7 +156,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         return await self._send_response(writer, resp["result"], query["id"])
 
     async def handle_query(self, writer, query):  # pylint: disable=R0915,R0912,R0911
-        """Electrum protocol method handlers"""
+        """Electrum protocol method handler mapper"""
         if "method" not in query:
             self.log.debug("No 'method' in query: %s", query)
             return
@@ -164,6 +173,9 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         return await self._send_reply(writer, resp, query)
 
     async def blockchain_block_header(self, query):
+        """Method: blockchain.block.header
+        Return the block header at the given height.
+        """
         if "params" not in query or len(query["params"]) < 1:
             return {"error": "malformed query"}
         # TODO: cp_height
@@ -182,6 +194,9 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         return {"result": safe_hexlify(data)}
 
     async def blockchain_block_headers(self, query):
+        """Method: blockchain.block.headers
+        Return a concatenated chunk of block headers from the main chain.
+        """
         if "params" not in query or len(query["params"]) < 2:
             return {"error": "malformed query"}
         # Electrum doesn't allow max_chunk_size to be less than 2016
@@ -213,35 +228,74 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         return {"result": resp}
 
     async def blockchain_estimatefee(self, query):  # pylint: disable=W0613
+        """Method: blockchain.estimatefee
+        Return the estimated transaction fee per kilobyte for a transaction
+        to be confirmed within a certain number of blocks.
+        """
         # Help wanted
         return {"result": -1}
 
     async def blockchain_headers_subscribe(self, query):
+        """Method: blockchain.headers.subscribe
+        Subscribe to receive block headers when a new block is found.
+        """
         return
 
     async def blockchain_relayfee(self, query):  # pylint: disable=W0613
+        """Method: blockchain.relayfee
+        Return the minimum fee a low-priority transaction must pay in order
+        to be accepted to the daemon’s memory pool.
+        """
         # Help wanted
         return {"result": 0.00001}
 
     async def blockchain_scripthash_get_balance(self, query):
+        """Method: blockchain.scripthash.get_balance
+        Return the confirmed and unconfirmed balances of a script hash.
+        """
+        return
+
+    async def blockchain_scripthash_get_history(self, query):
+        """Method: blockchain.scripthash.get_history
+        Return the confirmed and unconfirmed history of a script hash.
+        """
         return
 
     async def blockchain_scripthash_get_mempool(self, query):
+        """Method: blockchain.scripthash.get_mempool
+        Return the unconfirmed transactions of a script hash.
+        """
         return
 
     async def blockchain_scripthash_listunspent(self, query):
+        """Method: blockchain.scripthash.listunspent
+        Return an ordered list of UTXOs sent to a script hash.
+        """
         return
 
     async def blockchain_scripthash_subscribe(self, query):
+        """Method: blockchain.scripthash.subscribe
+        Subscribe to a script hash.
+        """
         return
 
     async def blockchain_scripthash_unsubscribe(self, query):
+        """Method: blockchain.scripthash.unsubscribe
+        Unsubscribe from a script hash, preventing future notifications
+        if its status changes.
+        """
         return
 
     async def blockchain_transaction_broadcast(self, query):
+        """Method: blockchain.transaction.broadcast
+        Broadcast a transaction to the network.
+        """
         return
 
     async def blockchain_transaction_get(self, query):
+        """Method: blockchain.transaction.get
+        Return a raw transaction.
+        """
         if "params" not in query or len(query["params"]) < 1:
             return {"error": "malformed request"}
         tx_hash = query["params"][0]
@@ -262,6 +316,10 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         return {"result", safe_hexlify(rawtx)}
 
     async def blockchain_transaction_get_merkle(self, query):
+        """Method: blockchain.transaction.get_merkle
+        Return the merkle branch to a confirmed transaction given its
+        hash and height.
+        """
         if "params" not in query or len(query["params"]) != 2:
             return {"error": "malformed request"}
         tx_hash = query["params"][0]
@@ -290,6 +348,10 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         return {"result": res}
 
     async def blockchain_transaction_from_pos(self, query):  # pylint: disable=R0911
+        """Method: blockchain.transaction.id_from_pos
+        Return a transaction hash and optionally a merkle proof, given a
+        block height and a position in the block.
+        """
         if "params" not in query or len(query["params"]) < 2:
             return {"error": "malformed request"}
         height = query["params"][0]
@@ -321,20 +383,37 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         return {"result": {"tx_hash": txid, "merkle": branch}}
 
     async def mempool_get_fee_histogram(self, query):  # pylint: disable=W0613
+        """Method: mempool.get_fee_histogram
+        Return a histogram of the fee rates paid by transactions in the
+        memory pool, weighted by transaction size.
+        """
         # Help wanted
         return {"result": [[0, 0]]}
 
     async def server_add_peer(self, query):  # pylint: disable=W0613
+        """Method: server.add_peer
+        A newly-started server uses this call to get itself into other
+        servers’ peers lists. It should not be used by wallet clients.
+        """
         # Help wanted
         return {"result": False}
 
     async def server_banner(self, query):  # pylint: disable=W0613
+        """Method: server.banner
+        Return a banner to be shown in the Electrum console.
+        """
         return {"result": BANNER}
 
     async def server_donation_address(self, query):  # pylint: disable=W0613
+        """Method: server.donation_address
+        Return a server donation address.
+        """
         return {"result": DONATION_ADDR}
 
     async def server_features(self, query):
+        """Method: server.features
+        Return a list of features and services supported by the server.
+        """
         cfg = self.server_cfg
         return {
             "result": {
@@ -356,13 +435,26 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         }
 
     async def server_peers_subscribe(self, query):  # pylint: disable=W0613
+        """Method: server.peers.subscribe
+        Return a list of peer servers. Despite the name this is not a
+        subscription and the server must send no notifications.
+        """
         # Help wanted
         return {"result": []}
 
     async def server_ping(self, query):  # pylint: disable=W0613
+        """Method: server.ping
+        Ping the server to ensure it is responding, and to keep the session
+        alive. The server may disconnect clients that have sent no requests
+        for roughly 10 minutes.
+        """
         return {"result": None}
 
     async def server_version(self, query):
+        """Method: server.version
+        Identify the client to the server and negotiate the protocol version.
+        Only the first server.version() message is accepted.
+        """
         if self.version_called:
             self.log.warning("Got a subsequent %s call", query["method"])
             return
