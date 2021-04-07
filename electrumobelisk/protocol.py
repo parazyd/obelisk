@@ -112,12 +112,14 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904
 
     async def _send_response(self, writer, result, nid):
         response = {"jsonrpc": "2.0", "result": result, "id": nid}
+        self.log.debug("<= %s", response)
         writer.write(json.dumps(response).encode("utf-8"))
         await writer.drain()
         # writer.close()
 
     async def _send_error(self, writer, error, nid):
         response = {"jsonrpc": "2.0", "error": error, "id": nid}
+        self.log.debug("<= %s", response)
         writer.write(json.dumps(response).encode("utf-8"))
         await writer.drain()
         # writer.close()
@@ -142,13 +144,10 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904
         if not func:
             self.log.error("Unhandled method %s, query=%s", method, query)
             return
-
-        self.log.debug("Request method: %s", method)
         resp = await func(query)
         return await self._send_reply(writer, resp, query)
 
     async def blockchain_block_header(self, query):
-        self.log.debug("query: %s", query)
         if "params" not in query:
             return {"error": "malformed query"}
         # TODO: cp_height
@@ -167,7 +166,6 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904
         return {"result": safe_hexlify(data)}
 
     async def blockchain_block_headers(self, query):
-        self.log.debug("query: %s", query)
         if "params" not in query or len(query["params"]) < 2:
             return {"error": "malformed query"}
         # Electrum doesn't allow max_chunk_size to be less than 2016
@@ -199,63 +197,62 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904
         return {"result": resp}
 
     async def blockchain_estimatefee(self, query):
-        self.log.debug("query: %s", query)
         # Help wanted
         return {"result": -1}
 
     async def blockchain_headers_subscribe(self, query):
-        self.log.debug("query: %s", query)
+        return
 
     async def blockchain_relayfee(self, query):
-        self.log.debug("query: %s", query)
+        return
 
     async def blockchain_scripthash_get_balance(self, query):
-        self.log.debug("query: %s", query)
+        return
 
     async def blockchain_scripthash_get_mempool(self, query):
-        self.log.debug("query: %s", query)
+        return
 
     async def blockchain_scripthash_listunspent(self, query):
-        self.log.debug("query: %s", query)
+        return
 
     async def blockchain_scripthash_subscribe(self, query):
-        self.log.debug("query: %s", query)
+        return
 
     async def blockchain_scripthash_unsubscribe(self, query):
-        self.log.debug("query: %s", query)
+        return
 
     async def blockchain_transaction_broadcast(self, query):
-        self.log.debug("query: %s", query)
+        return
 
     async def blockchain_transaction_get(self, query):
-        self.log.debug("query: %s", query)
+        return
 
     async def blockchain_transaction_get_merkle(self, query):
-        self.log.debug("query: %s", query)
+        return
 
     async def blockchain_transaction_from_pos(self, query):
-        self.log.debug("query: %s", query)
+        return
 
     async def mempool_get_fee_histogram(self, query):
-        self.log.debug("query: %s", query)
+        return
 
     async def server_add_peer(self, query):
-        self.log.debug("query: %s", query)
+        return
 
     async def server_banner(self, query):
-        self.log.debug("query: %s", query)
+        return
 
     async def server_donation_address(self, query):
-        self.log.debug("query: %s", query)
+        return
 
     async def server_features(self, query):
-        self.log.debug("query: %s", query)
+        return
 
     async def server_peers_subscribe(self, query):
-        self.log.debug("query: %s", query)
+        return
 
     async def server_ping(self, query):
-        self.log.debug("query: %s", query)
+        return
 
     async def server_version(self, query):
-        self.log.debug("query: %s", query)
+        return
