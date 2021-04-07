@@ -24,6 +24,7 @@ import zmq
 import zmq.asyncio
 
 from electrumobelisk.libbitcoin_errors import make_error_code, ErrorCode
+from electrumobelisk.util import bh2u
 
 
 def create_random_id():
@@ -276,3 +277,23 @@ class Client:
         if error_code:
             return error_code, None
         return error_code, unpack_table("32s", data)
+
+    async def fetch_blockchain_transaction(self, txid):
+        """Fetch transaction by txid (not including mempool)"""
+        command = b"blockchain.fetch_transaction2"
+        error_code, data = await self._simple_request(
+            command,
+            bytes.fromhex(txid)[::-1])
+        if error_code:
+            return error_code, None
+        return error_code, bh2u(data)
+
+    async def fetch_mempool_transaction(self, txid):
+        """Fetch transaction by txid (including mempool)"""
+        command = b"transaction_pool.fetch_transaction2"
+        error_code, data = await self._simple_request(
+            command,
+            bytes.fromhex(txid)[::-1])
+        if error_code:
+            return error_code, None
+        return error_code, bh2u(data)

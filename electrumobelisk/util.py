@@ -41,7 +41,7 @@ def is_hex_str(text):
         return False
     try:
         b = bytes.fromhex(text)
-    except:
+    except:  # pylint: disable=W0702
         return False
     # Forbid whitespaces in text:
     if len(text) != 2 * len(b):
@@ -61,3 +61,14 @@ def is_hash256_str(text):
 def safe_hexlify(val):
     """hexlify and return a string"""
     return str(hexlify(val), "utf-8")
+
+
+def bh2u(val):
+    """
+    str with hex representation of a bytes-like object
+
+    >>> x = bytes((1, 2, 10))
+    >>> bh2u(x)
+    '01020A'
+    """
+    return val.hex()

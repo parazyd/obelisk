@@ -237,7 +237,24 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         return
 
     async def blockchain_transaction_get(self, query):
-        return
+        if "params" not in query or len(query["params"]) < 1:
+            return {"error": "malformed request"}
+        tx_hash = query["params"][0]
+        verbose = query["params"][1] if len(query["params"]) > 1 else False
+
+        # _ec, rawtx = await self.bx.fetch_blockchain_transaction(tx_hash)
+        _ec, rawtx = await self.bx.fetch_mempool_transaction(tx_hash)
+        if _ec and _ec != 0:
+            self.log.debug("Got error: %s", repr(_ec))
+            return {"error": "request corrupted"}
+        if not rawtx:
+            return {"error": f"txid {tx_hash} not found"}
+
+        if verbose:
+            # TODO: Help needed
+            return {"error": "not implemented with verbose=true"}
+
+        return {"result", safe_hexlify(rawtx)}
 
     async def blockchain_transaction_get_merkle(self, query):
         if "params" not in query or len(query["params"]) != 2:
