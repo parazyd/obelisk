@@ -152,7 +152,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         return await self._send_reply(writer, resp, query)
 
     async def blockchain_block_header(self, query):
-        if "params" not in query:
+        if "params" not in query or len(query["params"]) < 1:
             return {"error": "malformed query"}
         # TODO: cp_height
         index = query["params"][0]
@@ -266,7 +266,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         if self.version_called:
             self.log.warning("Got a subsequent %s call", query["method"])
             return
-        if len(query["params"]) != 2:
+        if "params" not in query or len(query["params"]) != 2:
             return {"error": "malformed request"}
         client_ver = query["params"][1]
         if isinstance(client_ver, list):
