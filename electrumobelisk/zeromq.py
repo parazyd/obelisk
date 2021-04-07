@@ -17,18 +17,32 @@
 """ZeroMQ implementation for libbitcoin"""
 import asyncio
 import struct
+from binascii import unhexlify
 from random import randint
 
 import zmq
 import zmq.asyncio
 
-from libbitcoin_errors import make_error_code, ErrorCode
+from electrumobelisk.libbitcoin_errors import make_error_code, ErrorCode
 
 
 def create_random_id():
     """Generate a random request ID"""
     max_uint32 = 4294967295
     return randint(0, max_uint32)
+
+
+def pack_block_index(index):
+    if isinstance(index, str):
+        index = unhexlify(index)
+        assert len(index) == 32
+        return index
+    if isinstance(index, int):
+        return struct.pack("<I", index)
+
+    raise ValueError(
+        f"Unknown index type {type(index)} v:{index}, should be int or bytearray"
+    )
 
 
 class ClientSettings:
@@ -41,7 +55,7 @@ class ClientSettings:
     @property
     def context(self):
         """ZMQ context property"""
-        if not self.context:
+        if not self._context:
             ctx = zmq.asyncio.Context()
             ctx.linger = 500  # in milliseconds
             self._context = ctx
@@ -234,3 +248,9 @@ class Client:
         assert response.command == request.command
         assert response.request_id == request.id_
         return response.error_code, response.data
+
+    async def block_header(self, index):
+        """Fetch a block header by its height or integer index"""
+        command = b"blockchain.fetch_block_header"
+        data = pack_block_index(index)
+        return await self._simple_request(command, data)

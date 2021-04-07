@@ -17,7 +17,8 @@
 import asyncio
 import json
 
-from zeromq import Client
+from electrumobelisk.util import is_non_negative_integer, safe_hexlify
+from electrumobelisk.zeromq import Client
 
 VERSION = 0.0
 DONATION_ADDR = "bc1q7an9p5pz6pjwjk4r48zke2yfaevafzpglg26mz"
@@ -89,7 +90,19 @@ class ElectrumProtocol(asyncio.Protocol):
 
     async def blockchain_block_header(self, query):
         self.log.debug("query: %s", query)
-        return {"result": "foo"}
+        # TODO: cp_height
+        index = query["params"][0]
+        cp_height = query["params"][1] if len(query["params"]) == 2 else 0
+
+        if not is_non_negative_integer(index):
+            return {"error": "Invalid block height"}
+        if not is_non_negative_integer(cp_height):
+            return {"error": "Invalid cp_height"}
+
+        _ec, data = await self.bx.block_header(index)
+        if _ec and _ec != 0:
+            return {"error": "Request corrupted"}
+        return {"result": safe_hexlify(data)}
 
     async def handle_query(self, writer, query):  # pylint: disable=R0915,R0912,R0911
         """Electrum protocol method handlers"""
@@ -105,12 +118,15 @@ class ElectrumProtocol(asyncio.Protocol):
 
         if method == "blockchain.block.header":
             self.log.debug("blockchain.block.header")
+            if "params" not in query:
+                return await self._send_error(writer, "Malformed query",
+                                              query["id"])
             resp = await self.blockchain_block_header(query)
             if "error" in resp:
-                await self._send_error(writer, resp["error"], query["id"])
-            else:
-                await self._send_response(writer, resp["result"], query["id"])
-            return
+                return await self._send_error(writer, resp["error"],
+                                              query["id"])
+            return await self._send_response(writer, resp["result"],
+                                             query["id"])
 
         if method == "blockchain.block.headers":
             self.log.debug("blockchain.block.headers")
