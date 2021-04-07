@@ -97,6 +97,11 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
             "server.version": self.server_version,
         }
 
+    async def stop(self):
+        self.log.debug("ElectrumProtocol.stop()")
+        if self.bx:
+            await self.bx.stop()
+
     async def recv(self, reader, writer):
         recv_buf = bytearray()
         while True:

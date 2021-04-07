@@ -26,6 +26,9 @@ from pkg_resources import resource_filename
 
 from electrumobelisk.protocol import ElectrumProtocol, VERSION
 
+# Used for destructor/cleanup
+PROTOCOL = None
+
 
 def logger_config(log, config):
     """Setup logging"""
@@ -100,9 +103,10 @@ async def run_electrum_server(config, chain):
     server_cfg["server_port"] = port
     server_cfg["using_tls"] = usetls
 
-    protocol = ElectrumProtocol(log, chain, endpoints, server_cfg)
+    global PROTOCOL
+    PROTOCOL = ElectrumProtocol(log, chain, endpoints, server_cfg)
 
-    server = await asyncio.start_server(protocol.recv, host, port)
+    server = await asyncio.start_server(PROTOCOL.recv, host, port)
     async with server:
         await server.serve_forever()
 
@@ -131,7 +135,15 @@ def main():
         log.error("chain is not 'mainnet' or 'testnet'")
         return 1
 
-    asyncio.run(run_electrum_server(config, chain))
+    try:
+        asyncio.run(run_electrum_server(config, chain))
+    except KeyboardInterrupt:
+        print("\r", end="")
+        log.debug("Caught KeyboardInterrupt, exiting...")
+        if PROTOCOL:
+            asyncio.run(PROTOCOL.stop())
+        return 0
+
     return 1
 
 

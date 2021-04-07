@@ -211,6 +211,7 @@ class Client:
                                                      self._settings._loop)
 
     async def stop(self):
+        self.log.debug("zmq Client.stop()")
         self._query_socket.close()
         self._block_socket.close()
         return await self._request_collection.stop()
