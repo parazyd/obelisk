@@ -48,7 +48,7 @@ Please consider donating: %s
 
 
 class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
-    """TBD"""
+    """Class implementing the Electrum protocol, with async support"""
     def __init__(self, log, chain, endpoints, server_cfg):
         self.log = log
         self.endpoints = endpoints
@@ -139,7 +139,6 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         self.log.debug("<= %s", response)
         writer.write(json.dumps(response).encode("utf-8"))
         await writer.drain()
-        # writer.close()
 
     async def _send_error(self, writer, error, nid):
         """Send JSON-RPC error to given writer"""
@@ -147,7 +146,6 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         self.log.debug("<= %s", response)
         writer.write(json.dumps(response).encode("utf-8"))
         await writer.drain()
-        # writer.close()
 
     async def _send_reply(self, writer, resp, query):
         """Wrap function for sending replies"""
@@ -232,7 +230,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         Return the estimated transaction fee per kilobyte for a transaction
         to be confirmed within a certain number of blocks.
         """
-        # Help wanted
+        # TODO: Help wanted
         return {"result": -1}
 
     async def blockchain_headers_subscribe(self, query):
@@ -246,7 +244,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         Return the minimum fee a low-priority transaction must pay in order
         to be accepted to the daemon’s memory pool.
         """
-        # Help wanted
+        # TODO: Help wanted
         return {"result": 0.00001}
 
     async def blockchain_scripthash_get_balance(self, query):
@@ -387,7 +385,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         Return a histogram of the fee rates paid by transactions in the
         memory pool, weighted by transaction size.
         """
-        # Help wanted
+        # TODO: Help wanted
         return {"result": [[0, 0]]}
 
     async def server_add_peer(self, query):  # pylint: disable=W0613
@@ -395,7 +393,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         A newly-started server uses this call to get itself into other
         servers’ peers lists. It should not be used by wallet clients.
         """
-        # Help wanted
+        # TODO: Help wanted
         return {"result": False}
 
     async def server_banner(self, query):  # pylint: disable=W0613
@@ -439,7 +437,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         Return a list of peer servers. Despite the name this is not a
         subscription and the server must send no notifications.
         """
-        # Help wanted
+        # TODO: Help wanted
         return {"result": []}
 
     async def server_ping(self, query):  # pylint: disable=W0613
