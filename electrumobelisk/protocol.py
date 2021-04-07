@@ -72,20 +72,43 @@ class ElectrumProtocol(asyncio.Protocol):
                     self.log.debug("Got error: %s", repr(err))
                     break
                 self.log.debug("=> " + line)
-                self.handle_query(writer, query)
+                await self.handle_query(writer, query)
 
-    async def handle_query(
-        self, writer, query
-    ):  # pylint: disable=R0915,R0912,R0911
+    async def _send_response(self, writer, result, nid):
+        response = {"jsonrpc": "2.0", "result": result, "id": nid}
+        writer.write(response)
+        await writer.drain()
+        # writer.close()
+
+    async def _send_error(self, writer, error, nid):
+        response = {"jsonrpc": "2.0", "error": error, "id": nid}
+        writer.write(response)
+        await writer.drain()
+        # writer.close()
+
+    async def blockchain_block_header(self, query):
+        self.log.debug("query: %s", query)
+        return {"result": "foo"}
+
+    async def handle_query(self, writer, query):  # pylint: disable=R0915,R0912,R0911
         """Electrum protocol method handlers"""
         # https://electrumx-spesmilo.readthedocs.io/en/latest/protocol-methods.html
         if "method" not in query:
             self.log.debug("No 'method' in query: %s", query)
+            return
+        if "id" not in query:
+            self.log.debug("No 'id' in query: %s", query)
+            return
 
         method = query["method"]
 
         if method == "blockchain.block.header":
             self.log.debug("blockchain.block.header")
+            resp = await self.blockchain_block_header(query)
+            if "error" in resp:
+                await self._send_error(writer, resp["error"], query["id"])
+            else:
+                await self._send_response(writer, resp["result"], query["id"])
             return
 
         if method == "blockchain.block.headers":
