@@ -204,7 +204,8 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904
         return
 
     async def blockchain_relayfee(self, query):
-        return
+        # Help wanted
+        return {"result": 0.00001}
 
     async def blockchain_scripthash_get_balance(self, query):
         return
@@ -234,25 +235,28 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904
         return
 
     async def mempool_get_fee_histogram(self, query):
-        return
+        # Help wanted
+        return {"result": [[0, 0]]}
 
     async def server_add_peer(self, query):
-        return
+        # Help wanted
+        return {"result": False}
 
     async def server_banner(self, query):
-        return
+        return {"result": BANNER}
 
     async def server_donation_address(self, query):
-        return
+        return {"result": DONATION_ADDR}
 
     async def server_features(self, query):
         return
 
     async def server_peers_subscribe(self, query):
-        return
+        # Help wanted
+        return {"result": []}
 
     async def server_ping(self, query):
-        return
+        return {"result": None}
 
     async def server_version(self, query):
         return
