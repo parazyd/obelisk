@@ -35,7 +35,7 @@ Please consider donating: %s
 """ % DONATION_ADDR)
 
 
-class ElectrumProtocol(asyncio.Protocol):
+class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904
     """TBD"""
     def __init__(self, log, chain, endpoints, server_cfg):
         self.log = log
@@ -51,6 +51,40 @@ class ElectrumProtocol(asyncio.Protocol):
             self.genesis = "000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943"
         else:
             raise ValueError(f"Invalid chain '{chain}'")
+
+        # https://electrumx-spesmilo.readthedocs.io/en/latest/protocol-methods.html
+        self.methodmap = {
+            "blockchain.block.header": self.blockchain_block_header,
+            "blockchain.block.headers": self.blockchain_block_headers,
+            "blockchain.estimatefee": self.blockchain_estimatefee,
+            "blockchain.headers.subscribe": self.blockchain_headers_subscribe,
+            "blockchain.relayfee": self.blockchain_relayfee,
+            "blockchain.scripthash.get_balance":
+            self.blockchain_scripthash_get_balance,
+            "blockchain.scripthash.get_mempool":
+            self.blockchain_scripthash_get_mempool,
+            "blockchain.scripthash.listunspent":
+            self.blockchain_scripthash_listunspent,
+            "blockchain.scripthash.subscribe":
+            self.blockchain_scripthash_subscribe,
+            "blockchain.scripthash.unsubscribe":
+            self.blockchain_scripthash_unsubscribe,
+            "blockchain.transaction.broadcast":
+            self.blockchain_transaction_broadcast,
+            "blockchain.transaction.get": self.blockchain_transaction_get,
+            "blockchain.transaction.get_merkle":
+            self.blockchain_transaction_get_merkle,
+            "blockchain.transaction.id_from_pos":
+            self.blockchain_transaction_from_pos,
+            "mempool.get_fee_histogram": self.mempool_get_fee_histogram,
+            "server_add_peer": self.server_add_peer,
+            "server.banner": self.server_banner,
+            "server.donation_address": self.server_donation_address,
+            "server.features": self.server_features,
+            "server.peers.subscribe": self.server_peers_subscribe,
+            "server.ping": self.server_ping,
+            "server.version": self.server_version,
+        }
 
     async def recv(self, reader, writer):
         recv_buf = bytearray()
@@ -94,6 +128,25 @@ class ElectrumProtocol(asyncio.Protocol):
             return await self._send_error(writer, resp["error"], query["id"])
         return await self._send_response(writer, resp["result"], query["id"])
 
+    async def handle_query(self, writer, query):  # pylint: disable=R0915,R0912,R0911
+        """Electrum protocol method handlers"""
+        if "method" not in query:
+            self.log.debug("No 'method' in query: %s", query)
+            return
+        if "id" not in query:
+            self.log.debug("No 'id' in query: %s", query)
+            return
+
+        method = query["method"]
+        func = self.methodmap.get(method)
+        if not func:
+            self.log.error("Unhandled method %s, query=%s", method, query)
+            return
+
+        self.log.debug("Request method: %s", method)
+        resp = await func(query)
+        return await self._send_reply(writer, resp, query)
+
     async def blockchain_block_header(self, query):
         self.log.debug("query: %s", query)
         if "params" not in query:
@@ -112,110 +165,65 @@ class ElectrumProtocol(asyncio.Protocol):
             return {"error": "request corrupted"}
         return {"result": safe_hexlify(data)}
 
-    async def handle_query(self, writer, query):  # pylint: disable=R0915,R0912,R0911
-        """Electrum protocol method handlers"""
-        # https://electrumx-spesmilo.readthedocs.io/en/latest/protocol-methods.html
-        if "method" not in query:
-            self.log.debug("No 'method' in query: %s", query)
-            return
-        if "id" not in query:
-            self.log.debug("No 'id' in query: %s", query)
-            return
+    async def blockchain_block_headers(self, query):
+        self.log.debug("query: %s", query)
 
-        method = query["method"]
+    async def blockchain_estimatefee(self, query):
+        self.log.debug("query: %s", query)
 
-        if method == "blockchain.block.header":
-            self.log.debug("blockchain.block.header")
-            resp = await self.blockchain_block_header(query)
-            return await self._send_reply(writer, resp, query)
+    async def blockchain_headers_subscribe(self, query):
+        self.log.debug("query: %s", query)
 
-        if method == "blockchain.block.headers":
-            self.log.debug("blockchain.block.headers")
-            return
+    async def blockchain_relayfee(self, query):
+        self.log.debug("query: %s", query)
 
-        if method == "blockchain.estimatefee":
-            self.log.debug("blockchain.estimatefee")
-            return
+    async def blockchain_scripthash_get_balance(self, query):
+        self.log.debug("query: %s", query)
 
-        if method == "blockchain.headers.subscribe":
-            self.log.debug("blockchain.headers.subscribe")
-            return
+    async def blockchain_scripthash_get_mempool(self, query):
+        self.log.debug("query: %s", query)
 
-        if method == "blockchain.relayfee":
-            self.log.debug("blockchain.relayfee")
-            return
+    async def blockchain_scripthash_listunspent(self, query):
+        self.log.debug("query: %s", query)
 
-        if method == "blockchain.scripthash.get_balance":
-            self.log.debug("blockchain.scripthash.get_balance")
-            return
+    async def blockchain_scripthash_subscribe(self, query):
+        self.log.debug("query: %s", query)
 
-        if method == "blockchain.scripthash.get_history":
-            self.log.debug("blockchain.scripthash.get_history")
-            return
+    async def blockchain_scripthash_unsubscribe(self, query):
+        self.log.debug("query: %s", query)
 
-        if method == "blockchain.scripthash.get_mempool":
-            self.log.debug("blockchain.scripthash.get_mempool")
-            return
+    async def blockchain_transaction_broadcast(self, query):
+        self.log.debug("query: %s", query)
 
-        if method == "blockchain.scripthash.listunspent":
-            self.log.debug("blockchain.scripthash.listunspent")
-            return
+    async def blockchain_transaction_get(self, query):
+        self.log.debug("query: %s", query)
 
-        if method == "blockchain.scripthash.subscribe":
-            self.log.debug("blockchain.scripthash.subscribe")
-            return
+    async def blockchain_transaction_get_merkle(self, query):
+        self.log.debug("query: %s", query)
 
-        if method == "blockchain.scripthash.unsubscribe":
-            self.log.debug("blockchain.scripthash.unsubscribe")
-            return
+    async def blockchain_transaction_from_pos(self, query):
+        self.log.debug("query: %s", query)
 
-        if method == "blockchain.transaction.broadcast":
-            self.log.debug("blockchain.transaction.broadcast")
-            return
+    async def mempool_get_fee_histogram(self, query):
+        self.log.debug("query: %s", query)
 
-        if method == "blockchain.transaction.get":
-            self.log.debug("blockchain.transaction.get")
-            return
+    async def server_add_peer(self, query):
+        self.log.debug("query: %s", query)
 
-        if method == "blockchain.transaction.get_merkle":
-            self.log.debug("blockchain.transaction.get_merkle")
-            return
+    async def server_banner(self, query):
+        self.log.debug("query: %s", query)
 
-        if method == "blockchain.transaction.id_from_pos":
-            self.log.debug("blockchain.transaction.id_from_pos")
-            return
+    async def server_donation_address(self, query):
+        self.log.debug("query: %s", query)
 
-        if method == "mempool.get_fee_histogram":
-            self.log.debug("mempool.get_fee_histogram")
-            return
+    async def server_features(self, query):
+        self.log.debug("query: %s", query)
 
-        if method == "server.add_peer":
-            self.log.debug("server.add_peer")
-            return
+    async def server_peers_subscribe(self, query):
+        self.log.debug("query: %s", query)
 
-        if method == "server.banner":
-            self.log.debug("server.banner")
-            return
+    async def server_ping(self, query):
+        self.log.debug("query: %s", query)
 
-        if method == "server.donation_address":
-            self.log.debug("server.donation_address")
-            return
-
-        if method == "server.features":
-            self.log.debug("server.features")
-            return
-
-        if method == "server.peers.subscribe":
-            self.log.debug("server.peers.subscribe")
-            return
-
-        if method == "server.ping":
-            self.log.debug("server.ping")
-            return
-
-        if method == "server.version":
-            self.log.debug("server.version")
-            return
-
-        self.log.error("BUG? Unhandled method: '%s' query=%s", method, query)
-        return
+    async def server_version(self, query):
+        self.log.debug("query: %s", query)
