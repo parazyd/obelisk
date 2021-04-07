@@ -88,20 +88,28 @@ class ElectrumProtocol(asyncio.Protocol):
         await writer.drain()
         # writer.close()
 
+    async def _send_reply(self, writer, resp, query):
+        """Wrap function for sending replies"""
+        if "error" in resp:
+            return await self._send_error(writer, resp["error"], query["id"])
+        return await self._send_response(writer, resp["result"], query["id"])
+
     async def blockchain_block_header(self, query):
         self.log.debug("query: %s", query)
+        if "params" not in query:
+            return {"error": "malformed query"}
         # TODO: cp_height
         index = query["params"][0]
         cp_height = query["params"][1] if len(query["params"]) == 2 else 0
 
         if not is_non_negative_integer(index):
-            return {"error": "Invalid block height"}
+            return {"error": "invalid block height"}
         if not is_non_negative_integer(cp_height):
-            return {"error": "Invalid cp_height"}
+            return {"error": "invalid cp_height"}
 
         _ec, data = await self.bx.block_header(index)
         if _ec and _ec != 0:
-            return {"error": "Request corrupted"}
+            return {"error": "request corrupted"}
         return {"result": safe_hexlify(data)}
 
     async def handle_query(self, writer, query):  # pylint: disable=R0915,R0912,R0911
@@ -118,15 +126,8 @@ class ElectrumProtocol(asyncio.Protocol):
 
         if method == "blockchain.block.header":
             self.log.debug("blockchain.block.header")
-            if "params" not in query:
-                return await self._send_error(writer, "Malformed query",
-                                              query["id"])
             resp = await self.blockchain_block_header(query)
-            if "error" in resp:
-                return await self._send_error(writer, resp["error"],
-                                              query["id"])
-            return await self._send_response(writer, resp["result"],
-                                             query["id"])
+            return await self._send_reply(writer, resp, query)
 
         if method == "blockchain.block.headers":
             self.log.debug("blockchain.block.headers")
