@@ -171,7 +171,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
 
         _ec, data = await self.bx.fetch_block_header(index)
         if _ec and _ec != 0:
-            self.log.debug("Got error: {_ec}")
+            self.log.debug("Got error: %s", repr(_ec))
             return {"error": "request corrupted"}
         return {"result": safe_hexlify(data)}
 
@@ -195,7 +195,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         for i in range(count):
             _ec, data = await self.bx.fetch_block_header(i)
             if _ec and _ec != 0:
-                self.log.debug("Got error: {_ec}")
+                self.log.debug("Got error: %s", repr(_ec))
                 return {"error": "request corrupted"}
             headers.extend(data)
 
@@ -309,6 +309,9 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
             client_min = client_max = client_ver
         version = min(client_max, SERVER_PROTO_MAX)
         if version < max(client_min, SERVER_PROTO_MIN):
-            return {"error": f"client protocol version {client_ver} is not supported"}
+            return {
+                "error":
+                f"client protocol version {client_ver} is not supported"
+            }
         self.version_called = True
         return {"response": [f"obelisk {VERSION}", version]}
