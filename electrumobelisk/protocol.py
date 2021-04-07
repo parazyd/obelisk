@@ -37,7 +37,7 @@ Please consider donating: %s
 """ % DONATION_ADDR)
 
 
-class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904
+class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
     """TBD"""
     def __init__(self, log, chain, endpoints, server_cfg):
         self.log = log
@@ -200,14 +200,14 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904
         }
         return {"result": resp}
 
-    async def blockchain_estimatefee(self, query):
+    async def blockchain_estimatefee(self, query):  # pylint: disable=W0613
         # Help wanted
         return {"result": -1}
 
     async def blockchain_headers_subscribe(self, query):
         return
 
-    async def blockchain_relayfee(self, query):
+    async def blockchain_relayfee(self, query):  # pylint: disable=W0613
         # Help wanted
         return {"result": 0.00001}
 
@@ -238,28 +238,28 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904
     async def blockchain_transaction_from_pos(self, query):
         return
 
-    async def mempool_get_fee_histogram(self, query):
+    async def mempool_get_fee_histogram(self, query):  # pylint: disable=W0613
         # Help wanted
         return {"result": [[0, 0]]}
 
-    async def server_add_peer(self, query):
+    async def server_add_peer(self, query):  # pylint: disable=W0613
         # Help wanted
         return {"result": False}
 
-    async def server_banner(self, query):
+    async def server_banner(self, query):  # pylint: disable=W0613
         return {"result": BANNER}
 
-    async def server_donation_address(self, query):
+    async def server_donation_address(self, query):  # pylint: disable=W0613
         return {"result": DONATION_ADDR}
 
     async def server_features(self, query):
         return
 
-    async def server_peers_subscribe(self, query):
+    async def server_peers_subscribe(self, query):  # pylint: disable=W0613
         # Help wanted
         return {"result": []}
 
-    async def server_ping(self, query):
+    async def server_ping(self, query):  # pylint: disable=W0613
         return {"result": None}
 
     async def server_version(self, query):
