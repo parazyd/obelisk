@@ -30,6 +30,34 @@ def is_non_negative_integer(val):
     return False
 
 
+def is_boolean(val):
+    """Check if val is of type bool"""
+    return isinstance(val, bool)
+
+
+def is_hex_str(text):
+    """Check if text is a hex string"""
+    if not isinstance(text, str):
+        return False
+    try:
+        b = bytes.fromhex(text)
+    except:
+        return False
+    # Forbid whitespaces in text:
+    if len(text) != 2 * len(b):
+        return False
+    return True
+
+
+def is_hash256_str(text):
+    """Check if text is a sha256 hash"""
+    if not isinstance(text, str):
+        return False
+    if len(text) != 64:
+        return False
+    return is_hex_str(text)
+
+
 def safe_hexlify(val):
     """hexlify and return a string"""
     return str(hexlify(val), "utf-8")

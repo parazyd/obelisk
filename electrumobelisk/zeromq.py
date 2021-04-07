@@ -45,6 +45,19 @@ def pack_block_index(index):
     )
 
 
+def unpack_table(row_fmt, data):
+    # Get the number of rows
+    row_size = struct.calcsize(row_fmt)
+    nrows = len(data) // row_size
+    # Unpack
+    rows = []
+    for idx in range(nrows):
+        offset = idx * row_size
+        row = struct.unpack_from(row_fmt, data, offset)
+        rows.append(row)
+    return rows
+
+
 class ClientSettings:
     """Class implementing ZMQ client settings"""
     def __init__(self, timeout=10, context=None, loop=None):
@@ -254,3 +267,12 @@ class Client:
         command = b"blockchain.fetch_block_header"
         data = pack_block_index(index)
         return await self._simple_request(command, data)
+
+    async def fetch_block_transaction_hashes(self, index):
+        """Fetch transaction hashes in a block at height index"""
+        command = b"blockchain.fetch_block_transaction_hashes"
+        data = pack_block_index(index)
+        error_code, data = await self._simple_request(command, data)
+        if error_code:
+            return error_code, None
+        return error_code, unpack_table("32s", data)

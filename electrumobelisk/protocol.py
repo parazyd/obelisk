@@ -17,7 +17,13 @@
 import asyncio
 import json
 
-from electrumobelisk.util import is_non_negative_integer, safe_hexlify
+from electrumobelisk.merkle import merkle_branch
+from electrumobelisk.util import (
+    is_boolean,
+    is_hash256_str,
+    is_non_negative_integer,
+    safe_hexlify,
+)
 from electrumobelisk.zeromq import Client
 
 VERSION = 0.0
@@ -235,8 +241,36 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
     async def blockchain_transaction_get_merkle(self, query):
         return
 
-    async def blockchain_transaction_from_pos(self, query):
-        return
+    async def blockchain_transaction_from_pos(self, query):  # pylint: disable=R0911
+        if "params" not in query or len(query["params"]) < 2:
+            return {"error": "malformed request"}
+        height = query["params"][0]
+        tx_pos = query["params"][1]
+        merkle = query["params"][2] if len(query["params"]) > 2 else False
+
+        if not is_non_negative_integer(height):
+            return {"error": "height is not a non-negative integer"}
+        if not is_non_negative_integer(tx_pos):
+            return {"error": "tx_pos is not a non-negative integer"}
+        if not is_boolean(merkle):
+            return {"error": "merkle is not a boolean value"}
+
+        _ec, hashes = await self.bx.fetch_block_transaction_hashes(height)
+        if _ec and _ec != 0:
+            self.log.debug("Got error: %s", repr(_ec))
+            return {"error": "request corrupted"}
+
+        if len(hashes) - 1 < tx_pos:
+            return {"error": "index not in block"}
+
+        # Decouple from tuples
+        hashes = [i[0] for i in hashes] 
+        txid = safe_hexlify(hashes[tx_pos][::-1])
+
+        if not merkle:
+            return {"result": txid}
+        branch = merkle_branch(hashes, tx_pos)
+        return {"result": {"tx_hash": txid, "merkle": branch}}
 
     async def mempool_get_fee_histogram(self, query):  # pylint: disable=W0613
         # Help wanted
