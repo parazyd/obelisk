@@ -249,7 +249,7 @@ class Client:
         assert response.request_id == request.id_
         return response.error_code, response.data
 
-    async def block_header(self, index):
+    async def fetch_block_header(self, index):
         """Fetch a block header by its height or integer index"""
         command = b"blockchain.fetch_block_header"
         data = pack_block_index(index)

@@ -163,7 +163,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         if not is_non_negative_integer(cp_height):
             return {"error": "invalid cp_height"}
 
-        _ec, data = await self.bx.block_header(index)
+        _ec, data = await self.bx.fetch_block_header(index)
         if _ec and _ec != 0:
             self.log.debug("Got error: {_ec}")
             return {"error": "request corrupted"}
@@ -187,7 +187,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         count = min(count, max_chunk_size)
         headers = bytearray()
         for i in range(count):
-            _ec, data = await self.bx.block_header(i)
+            _ec, data = await self.bx.fetch_block_header(i)
             if _ec and _ec != 0:
                 self.log.debug("Got error: {_ec}")
                 return {"error": "request corrupted"}
