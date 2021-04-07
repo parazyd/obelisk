@@ -72,13 +72,13 @@ class ElectrumProtocol(asyncio.Protocol):
 
     async def _send_response(self, writer, result, nid):
         response = {"jsonrpc": "2.0", "result": result, "id": nid}
-        writer.write(response)
+        writer.write(json.dumps(response).encode("utf-8"))
         await writer.drain()
         # writer.close()
 
     async def _send_error(self, writer, error, nid):
         response = {"jsonrpc": "2.0", "error": error, "id": nid}
-        writer.write(response)
+        writer.write(json.dumps(response).encode("utf-8"))
         await writer.drain()
         # writer.close()
 
