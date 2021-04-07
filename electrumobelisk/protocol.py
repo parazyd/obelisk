@@ -16,6 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import asyncio
 import json
+from binascii import unhexlify
 
 from electrumobelisk.merkle import merkle_branch
 from electrumobelisk.util import (
@@ -239,7 +240,32 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         return
 
     async def blockchain_transaction_get_merkle(self, query):
-        return
+        if "params" not in query or len(query["params"]) != 2:
+            return {"error": "malformed request"}
+        tx_hash = query["params"][0]
+        height = query["params"][1]
+
+        if not is_hash256_str(tx_hash):
+            return {"error": "tx_hash is not a txid"}
+        if not is_non_negative_integer(height):
+            return {"error": "height is not a block height"}
+
+        _ec, hashes = await self.bx.fetch_block_transaction_hashes(height)
+        if _ec and _ec != 0:
+            self.log.debug("Got error: %s", repr(_ec))
+            return {"error": "request corrupted"}
+
+        # Decouple from tuples
+        hashes = [i[0] for i in hashes]
+        tx_pos = hashes.index(unhexlify(tx_hash)[::-1])
+        branch = merkle_branch(hashes, tx_pos)
+
+        res = {
+            "block_height": int(height),
+            "pos": int(tx_pos),
+            "merkle": branch,
+        }
+        return {"result": res}
 
     async def blockchain_transaction_from_pos(self, query):  # pylint: disable=R0911
         if "params" not in query or len(query["params"]) < 2:
@@ -264,7 +290,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
             return {"error": "index not in block"}
 
         # Decouple from tuples
-        hashes = [i[0] for i in hashes] 
+        hashes = [i[0] for i in hashes]
         txid = safe_hexlify(hashes[tx_pos][::-1])
 
         if not merkle:
