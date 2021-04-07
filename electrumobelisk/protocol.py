@@ -200,6 +200,8 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904
 
     async def blockchain_estimatefee(self, query):
         self.log.debug("query: %s", query)
+        # Help wanted
+        return {"result": -1}
 
     async def blockchain_headers_subscribe(self, query):
         self.log.debug("query: %s", query)
