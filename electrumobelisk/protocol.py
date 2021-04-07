@@ -162,11 +162,41 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904
 
         _ec, data = await self.bx.block_header(index)
         if _ec and _ec != 0:
+            self.log.debug("Got error: {_ec}")
             return {"error": "request corrupted"}
         return {"result": safe_hexlify(data)}
 
     async def blockchain_block_headers(self, query):
         self.log.debug("query: %s", query)
+        if "params" not in query or len(query["params"]) < 2:
+            return {"error": "malformed query"}
+        # Electrum doesn't allow max_chunk_size to be less than 2016
+        # gopher://bitreich.org/9/memecache/convenience-store.mkv
+        # TODO: cp_height
+        max_chunk_size = 2016
+        start_height = query["params"][0]
+        count = query["params"][1]
+
+        if not is_non_negative_integer(start_height):
+            return {"error": "invalid start_height"}
+        if not is_non_negative_integer(count):
+            return {"error": "invalid count"}
+
+        count = min(count, max_chunk_size)
+        headers = bytearray()
+        for i in range(count):
+            _ec, data = await self.bx.block_header(i)
+            if _ec and _ec != 0:
+                self.log.debug("Got error: {_ec}")
+                return {"error": "request corrupted"}
+            headers.extend(data)
+
+        resp = {
+            "hex": safe_hexlify(headers),
+            "count": len(headers) // 80,
+            "max": max_chunk_size,
+        }
+        return {"result": resp}
 
     async def blockchain_estimatefee(self, query):
         self.log.debug("query: %s", query)
