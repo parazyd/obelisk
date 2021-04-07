@@ -34,24 +34,19 @@ def logger_config(log, config):
             "obelisk",
             "log_format",
             fallback="%(asctime)s\t%(levelname)s\t%(message)s",
-        )
-    )
+        ))
     logstream = StreamHandler()
     logstream.setFormatter(fmt)
     logstream.setLevel(
-        config.get("obelisk", "log_level_stdout", fallback="DEBUG")
-    )
+        config.get("obelisk", "log_level_stdout", fallback="DEBUG"))
     log.addHandler(logstream)
     filename = config.get("obelisk", "log_file_location", fallback="")
     if len(filename.strip()) == 0:
         filename = join(gettempdir(), "obelisk.log")
     logfile = FileHandler(
         filename,
-        mode=(
-            "a"
-            if config.get("obelisk", "append_log", fallback="false")
-            else "w"
-        ),
+        mode=("a" if config.get("obelisk", "append_log", fallback="false") else
+              "w"),
     )
     logfile.setFormatter(fmt)
     logfile.setLevel(DEBUG)
@@ -85,9 +80,9 @@ async def run_electrum_server(config, chain):
         certfile, keyfile = get_certs(config)
         log.debug("Using TLS with keypair: %s , %s", certfile, keyfile)
 
-    broadcast_method = config.get(
-        "obelisk", "broadcast_method", fallback="tor"
-    )
+    broadcast_method = config.get("obelisk",
+                                  "broadcast_method",
+                                  fallback="tor")
     tor_host = config.get("obelisk", "tor_host", fallback="localhost")
     tor_port = int(config.get("obelisk", "tor_port", fallback=9050))
 

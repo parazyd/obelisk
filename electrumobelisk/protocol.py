@@ -20,8 +20,7 @@ import json
 VERSION = 0.0
 DONATION_ADDR = "bc1q7an9p5pz6pjwjk4r48zke2yfaevafzpglg26mz"
 
-BANNER = (
-    """
+BANNER = ("""
 Welcome to obelisk
 
 "Tools for the people"
@@ -30,14 +29,11 @@ obelisk is a server that uses libbitcoin-server as its backend.
 Source code can be found at: https://github.com/parazyd/obelisk
 
 Please consider donating: %s
-"""
-    % DONATION_ADDR
-)
+""" % DONATION_ADDR)
 
 
 class ElectrumProtocol(asyncio.Protocol):
     """TBD"""
-
     def __init__(self, log, chain, endpoints, server_cfg):
         self.log = log
         self.endpoints = endpoints
@@ -63,7 +59,7 @@ class ElectrumProtocol(asyncio.Protocol):
                 continue
             while lb != -1:
                 line = recv_buf[:lb].rstrip()
-                recv_buf = recv_buf[lb + 1 :]
+                recv_buf = recv_buf[lb + 1:]
                 lb = recv_buf.find(b"\n")
                 try:
                     line = line.decode("utf-8")
