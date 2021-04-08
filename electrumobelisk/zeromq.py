@@ -205,7 +205,7 @@ class RequestCollection:
             self._handle_response(response)
         else:
             print(
-                f"DEBUG: RequestCollection unhandled response {response.command}:{response.request_id}"
+                f"DEBUG: RequestCollection unhandled response {response.command}:{response.request_id}"  # pylint: disable=C0301
             )
 
     def _handle_response(self, response):
@@ -294,6 +294,14 @@ class Client:
         assert response.request_id == request.id_
         return response.error_code, response.data
 
+    async def fetch_last_height(self):
+        """Fetch the blockchain tip and return integer height"""
+        command = b"blockchain.fetch_last_height"
+        error_code, data = await self._simple_request(command, b"")
+        if error_code:
+            return error_code, None
+        return error_code, struct.unpack("<I", data)[0]
+
     async def fetch_block_header(self, index):
         """Fetch a block header by its height or integer index"""
         command = b"blockchain.fetch_block_header"
@@ -372,6 +380,21 @@ class Client:
         utxo = Client.__receives_without_spends(history)
         return error_code, functools.reduce(
             lambda accumulator, point: accumulator + point["value"], utxo, 0)
+
+    async def subscribe_to_blocks(self, queue):
+        asyncio.ensure_future(self._listen_for_blocks(queue))
+        return queue
+
+    async def _listen_for_blocks(self, queue):
+        """Infinite loop for block subscription.
+        Returns raw blocks as they're received.
+        """
+        while True:
+            frame = await self._block_socket.recv_multipart()
+            seq = struct.unpack("<H", frame[0])[0]
+            height = struct.unpack("<I", frame[1])[0]
+            block_data = frame[2]
+            queue.put_nowait((seq, height, block_data))
 
     @staticmethod
     def __receives_without_spends(history):
