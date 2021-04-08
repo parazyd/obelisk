@@ -64,6 +64,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         self.block_queue = None
         # TODO: Clean up on client disconnect
         self.tasks = []
+        self.sh_subscriptions = {}
 
         if chain == "mainnet":
             self.genesis = "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
@@ -337,7 +338,17 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         Unsubscribe from a script hash, preventing future notifications
         if its status changes.
         """
-        return
+        if "params" not in query or len(query["params"]) != 1:
+            return {"error": "malformed request"}
+
+        scripthash = query["params"][0]
+        if not is_hash256_str(scripthash):
+            return {"error": "invalid scripthash"}
+
+        if scripthash in self.sh_subscriptions:
+            self.sh_subscriptions[scripthash].cancel()
+            return {"result": True}
+        return {"result": False}
 
     async def blockchain_transaction_broadcast(self, writer, query):  # pylint: disable=W0613
         """Method: blockchain.transaction.broadcast
