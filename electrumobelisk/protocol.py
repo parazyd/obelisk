@@ -33,7 +33,7 @@ from electrumobelisk.util import (
 )
 from electrumobelisk.zeromq import Client
 
-VERSION = 0.0
+VERSION = "0.0"
 SERVER_PROTO_MIN = "1.4"
 SERVER_PROTO_MAX = "1.4.2"
 DONATION_ADDR = "bc1q7an9p5pz6pjwjk4r48zke2yfaevafzpglg26mz"
