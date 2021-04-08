@@ -352,7 +352,7 @@ class Client:
             return error_code, None
 
         def make_tuple(row):
-            kind, tx_hash, index, height, value = row
+            kind, height, tx_hash, index, value = row
             return (
                 kind,
                 COutPoint(tx_hash, index),
@@ -361,7 +361,7 @@ class Client:
                 checksum(tx_hash[::-1].hex(), index),
             )
 
-        rows = unpack_table("<B32sIIQ", raw_points)
+        rows = unpack_table("<BI32sIQ", raw_points)
         points = [make_tuple(row) for row in rows]
         correlated_points = Client.__correlate(points)
         return error_code, correlated_points
