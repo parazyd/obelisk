@@ -383,6 +383,13 @@ class Client:
         return error_code, functools.reduce(
             lambda accumulator, point: accumulator + point["value"], utxo, 0)
 
+    async def fetch_utxo(self, scripthash):
+        """Find UTXO for given scripthash"""
+        error_code, history = await self.fetch_history4(scripthash)
+        if error_code:
+            return error_code, None
+        return error_code, Client.__receives_without_spends(history)
+
     async def subscribe_to_blocks(self, queue):
         asyncio.ensure_future(self._listen_for_blocks(queue))
         return queue

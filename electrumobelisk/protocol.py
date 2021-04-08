@@ -328,7 +328,29 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         """Method: blockchain.scripthash.listunspent
         Return an ordered list of UTXOs sent to a script hash.
         """
-        return
+        if "params" not in query or len(query["params"]) != 1:
+            return {"error": "malformed request"}
+
+        scripthash = query["params"][0]
+        if not is_hash256_str(scripthash):
+            return {"error": "invalid scripthash"}
+
+        _ec, utxo = await self.bx.fetch_utxo(scripthash)
+        if _ec and _ec != 0:
+            self.log.debug("Got error: %s", repr(_ec))
+            return {"error": "internal error"}
+
+        # TODO: Check mempool
+        ret = []
+        for i in utxo:
+            rec = i["received"]
+            ret.append({
+                "tx_pos": rec["index"],
+                "value": i["value"],
+                "tx_hash": safe_hexlify(rec["hash"][::-1]),
+                "height": rec["height"],
+            })
+        return {"result": ret}
 
     async def blockchain_scripthash_subscribe(self, writer, query):  # pylint: disable=W0613
         """Method: blockchain.scripthash.subscribe
