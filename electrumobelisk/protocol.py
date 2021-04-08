@@ -365,7 +365,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
     async def scripthash_notifier(self, writer, scripthash):
         # TODO: Figure out how this actually works
         _ec, sh_queue = await self.bx.subscribe_scripthash(scripthash)
-        if _ec and ec != 0:
+        if _ec and _ec != 0:
             self.log.error("bx.subscribe_scripthash failed:", repr(_ec))
             return
 
@@ -404,9 +404,10 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
             status.append(str(i[kind]["height"]))  # str because of join
 
         self.sh_subscriptions[scripthash]["status"] = status
-        return {"result": self.scripthash_status(status)}
+        return {"result": ElectrumProtocol.__scripthash_status(status)}
 
-    def scripthash_status(self, status):
+    @staticmethod
+    def __scripthash_status(status):
         # TODO: Check if trailing colon is necessary
         concat = ":".join(status) + ":"
         return hash_to_hex_str(sha256(concat.encode()))
