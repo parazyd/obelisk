@@ -54,6 +54,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
     """Class implementing the Electrum protocol, with async support"""
     def __init__(self, log, chain, endpoints, server_cfg):
         self.log = log
+        self.stopped = False
         self.endpoints = endpoints
         self.server_cfg = server_cfg
         self.loop = asyncio.get_event_loop()
@@ -115,11 +116,12 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         self.log.debug("ElectrumProtocol.stop()")
         if self.bx:
             await self.bx.stop()
+        self.stopped = True
 
     async def recv(self, reader, writer):
         """Loop ran upon a connection which acts as a JSON-RPC handler"""
         recv_buf = bytearray()
-        while True:
+        while not self.stopped:
             data = await reader.read(4096)
             if not data or len(data) == 0:
                 self.log.debug("Received EOF, disconnect")
