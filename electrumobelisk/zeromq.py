@@ -337,6 +337,22 @@ class Client:
             return error_code, None
         return error_code, bh2u(data)
 
+    async def subscribe_scripthash(self, scripthash):
+        """Subscribe to scripthash"""
+        command = b"subscribe.key"
+        decoded_address = unhexlify(scripthash)
+        return await self._subscription_request(command, decoded_address)
+
+    async def unsubscribe_scripthash(self, scripthash):
+        """Unsubscribe scripthash"""
+        # TODO: This call should ideally also remove the subscription
+        # request from the RequestCollection.
+        # This call solicits a final call from the server with an
+        # `error::service_stopped` error code.
+        command = b"unsubscribe.key"
+        decoded_address = unhexlify(scripthash)
+        return await self._simple_request(command, decoded_address)
+
     async def fetch_history4(self, scripthash, height=0):
         """Fetch history for given scripthash"""
         # BUG: There is something strange happening sometimes, for example
