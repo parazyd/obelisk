@@ -300,3 +300,8 @@ class Client:
         if error_code:
             return error_code, None
         return error_code, bh2u(data)
+
+    async def broadcast_transaction(self, rawtx):
+        """Broadcast given raw transaction"""
+        command = b"transaction_pool.broadcast"
+        return await self._simple_request(command, rawtx)

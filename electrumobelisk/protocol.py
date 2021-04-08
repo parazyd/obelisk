@@ -21,10 +21,12 @@ import asyncio
 import json
 from binascii import unhexlify
 
+from electrumobelisk.hashes import double_sha256, hash_to_hex_str
 from electrumobelisk.merkle import merkle_branch
 from electrumobelisk.util import (
     is_boolean,
     is_hash256_str,
+    is_hex_str,
     is_non_negative_integer,
     safe_hexlify,
 )
@@ -137,14 +139,14 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         """Send successful JSON-RPC response to given writer"""
         response = {"jsonrpc": "2.0", "result": result, "id": nid}
         self.log.debug("<= %s", response)
-        writer.write(json.dumps(response).encode("utf-8"))
+        writer.write(json.dumps(response).encode("utf-8") + b"\n")
         await writer.drain()
 
     async def _send_error(self, writer, error, nid):
         """Send JSON-RPC error to given writer"""
         response = {"jsonrpc": "2.0", "error": error, "id": nid}
         self.log.debug("<= %s", response)
-        writer.write(json.dumps(response).encode("utf-8"))
+        writer.write(json.dumps(response).encode("utf-8") + b"\n")
         await writer.drain()
 
     async def _send_reply(self, writer, resp, query):
@@ -288,7 +290,21 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         """Method: blockchain.transaction.broadcast
         Broadcast a transaction to the network.
         """
-        return
+        # Note: Not yet implemented in bs v4
+        if "params" not in query or len(query["params"]) != 1:
+            return {"error": "malformed request"}
+
+        hextx = query["params"][0]
+        if not is_hex_str(hextx):
+            return {"error": "tx is not a valid hex string"}
+
+        _ec, _ = await self.bx.broadcast_transaction(hextx)
+        if _ec and _ec != 0:
+            return {"error": "request corrupted"}
+
+        rawtx = unhexlify(hextx)
+        txid = double_sha256(rawtx)
+        return {"result": hash_to_hex_str(txid)}
 
     async def blockchain_transaction_get(self, query):
         """Method: blockchain.transaction.get
