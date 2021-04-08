@@ -16,12 +16,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """ZeroMQ implementation for libbitcoin"""
 import asyncio
+import functools
 import struct
 from binascii import unhexlify
 from random import randint
 
 import zmq
 import zmq.asyncio
+from bitcoin.core import COutPoint
 
 from electrumobelisk.libbitcoin_errors import make_error_code, ErrorCode
 from electrumobelisk.util import bh2u
@@ -45,6 +47,32 @@ def pack_block_index(index):
     raise ValueError(
         f"Unknown index type {type(index)} v:{index}, should be int or bytearray"
     )
+
+
+def to_int(xbytes):
+    """Make little-endian integer from given bytes"""
+    return int.from_bytes(xbytes, byteorder="little")
+
+
+def checksum(xhash, index):
+    """
+    This method takes a transaction hash and an index and returns a checksum.
+
+    This checksum is based on 49 bits starting from the 12th byte of the
+    reversed hash. Combined with the last 15 bits of the 4 byte index.
+    """
+    mask = 0xFFFFFFFFFFFF8000
+    magic_start_position = 12
+
+    hash_bytes = bytes.fromhex(xhash)[::-1]
+    last_20_bytes = hash_bytes[magic_start_position:]
+
+    assert len(hash_bytes) == 32
+    assert index < 2**32
+
+    hash_upper_49_bits = to_int(last_20_bytes) & mask
+    index_lower_15_bits = index & ~mask
+    return hash_upper_49_bits | index_lower_15_bits
 
 
 def unpack_table(row_fmt, data):
@@ -301,7 +329,97 @@ class Client:
             return error_code, None
         return error_code, bh2u(data)
 
+    async def fetch_history4(self, scripthash, height=0):
+        """Fetch history for given scripthash"""
+        # BUG: There is something strange happening sometimes, for example
+        # on testnet, where the following scripthash returns as if the
+        # coins are spent, but in fact they are not:
+        # 8cc0f8d0cc3808540466194713e9fe618f57a2585a18d93d6d9542c0b71edd92
+        # 92dd1eb7c042956d3dd9185a58a2578f61fee91347196604540838ccd0f8c08c
+        command = b"blockchain.fetch_history4"
+        decoded_address = unhexlify(scripthash)
+        error_code, raw_points = await self._simple_request(
+            command, decoded_address + struct.pack("<I", height))
+        if error_code:
+            return error_code, None
+
+        def make_tuple(row):
+            kind, tx_hash, index, height, value = row
+            return (
+                kind,
+                COutPoint(tx_hash, index),
+                height,
+                value,
+                checksum(tx_hash[::-1].hex(), index),
+            )
+
+        rows = unpack_table("<B32sIIQ", raw_points)
+        points = [make_tuple(row) for row in rows]
+        correlated_points = Client.__correlate(points)
+        return error_code, correlated_points
+
     async def broadcast_transaction(self, rawtx):
         """Broadcast given raw transaction"""
         command = b"transaction_pool.broadcast"
         return await self._simple_request(command, rawtx)
+
+    async def fetch_balance(self, scripthash):
+        """Fetch balance for given scripthash"""
+        error_code, history = await self.fetch_history4(scripthash)
+        if error_code:
+            return error_code, None
+
+        utxo = Client.__receives_without_spends(history)
+        return error_code, functools.reduce(
+            lambda accumulator, point: accumulator + point["value"], utxo, 0)
+
+    @staticmethod
+    def __receives_without_spends(history):
+        return (point for point in history if "spent" not in point)
+
+    @staticmethod
+    def __correlate(points):
+        transfers, checksum_to_index = Client.__find_receives(points)
+        transfers = Client.__correlate_spends_to_receives(
+            points, transfers, checksum_to_index)
+        return transfers
+
+    @staticmethod
+    def __correlate_spends_to_receives(points, transfers, checksum_to_index):
+        for point in points:
+            if point[0] == 0:  # receive
+                continue
+
+            spent = {
+                "hash": point[1].hash,
+                "height": point[2],
+                "index": point[1].n,
+            }
+            if point[3] not in checksum_to_index:
+                transfers.append({"spent": spent})
+            else:
+                transfers[checksum_to_index[point[3]]]["spent"] = spent
+
+        return transfers
+
+    @staticmethod
+    def __find_receives(points):
+        transfers = []
+        checksum_to_index = {}
+
+        for point in points:
+            if point[0] == 1:  # spent
+                continue
+
+            transfers.append({
+                "received": {
+                    "hash": point[1].hash,
+                    "height": point[2],
+                    "index": point[1].n,
+                },
+                "value": point[3],
+            })
+
+            checksum_to_index[point[4]] = len(transfers) - 1
+
+        return transfers, checksum_to_index
