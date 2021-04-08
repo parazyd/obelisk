@@ -21,7 +21,7 @@ import asyncio
 import json
 from binascii import unhexlify
 
-from electrumobelisk.hashes import double_sha256, hash_to_hex_str
+from electrumobelisk.hashes import sha256, double_sha256, hash_to_hex_str
 from electrumobelisk.merkle import merkle_branch
 from electrumobelisk.util import (
     block_to_header,
@@ -62,6 +62,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         # Consider renaming bx to something else
         self.bx = Client(log, endpoints, self.loop)
         self.block_queue = None
+        self.tx_queue = None
         # TODO: Clean up on client disconnect
         self.tasks = []
         self.sh_subscriptions = {}
@@ -331,7 +332,34 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         """Method: blockchain.scripthash.subscribe
         Subscribe to a script hash.
         """
-        return
+        if "params" not in query or len(query["params"]) != 1:
+            return {"error": "malformed request"}
+
+        scripthash = query["params"][0]
+        if not is_hash256_str(scripthash):
+            return {"error": "invalid scripthash"}
+
+        _ec, history = await self.bx.fetch_history4(scripthash)
+        if _ec and _ec != 0:
+            return {"error": "request corrupted"}
+
+        # TODO: task for tx subscription
+        self.sh_subscriptions[scripthash] = "foo"
+
+        if len(history) < 1:
+            return {"result": None}
+
+        # TODO: Check how history4 acts for mempool/unconfirmed
+        status = []
+        for i in history:
+            kind = "received" if "received" in i else "spent"
+            status.append(safe_hexlify(i[kind]["hash"][::-1]))
+            status.append(str(i[kind]["height"]))  # str because of join
+
+        # TODO: Check if trailing colon is necessary
+        concat = ":".join(status) + ":"
+        res = hash_to_hex_str(sha256(concat.encode()))
+        return {"result": res}
 
     async def blockchain_scripthash_unsubscribe(self, writer, query):  # pylint: disable=W0613
         """Method: blockchain.scripthash.unsubscribe

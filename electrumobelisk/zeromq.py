@@ -364,6 +364,8 @@ class Client:
         rows = unpack_table("<BI32sIQ", raw_points)
         points = [make_tuple(row) for row in rows]
         correlated_points = Client.__correlate(points)
+        # self.log.debug("history points: %s", points)
+        # self.log.debug("history correlated: %s", correlated_points)
         return error_code, correlated_points
 
     async def broadcast_transaction(self, rawtx):
