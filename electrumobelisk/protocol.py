@@ -118,6 +118,14 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
                 self.log.debug("bx.unsubscribe %s", i)
                 await self.bx.unsubscribe_scripthash(i)
             await self.bx.stop()
+
+        idxs = []
+        for task in self.tasks:
+            idxs.append(self.tasks.index(task))
+            task.cancel()
+        for i in idxs:
+            del self.tasks[i]
+
         self.stopped = True
 
     async def recv(self, reader, writer):
