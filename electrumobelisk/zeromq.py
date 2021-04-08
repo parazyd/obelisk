@@ -410,7 +410,7 @@ class Client:
     @staticmethod
     def __correlate_spends_to_receives(points, transfers, checksum_to_index):
         for point in points:
-            if point[0] == 0:  # receive
+            if point[0] == 1:  # receive
                 continue
 
             spent = {
@@ -431,7 +431,7 @@ class Client:
         checksum_to_index = {}
 
         for point in points:
-            if point[0] == 1:  # spent
+            if point[0] == 0:  # spent
                 continue
 
             transfers.append({
