@@ -15,7 +15,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """Utility functions"""
+import hashlib
 from binascii import hexlify
+
+_sha256 = hashlib.sha256
 
 
 def is_integer(val):
@@ -87,3 +90,20 @@ def block_to_header(block):
     # bits = block_header[72:76]
     # nonce = block_header[76:80]
     return block_header
+
+
+def sha256(inp):
+    """ Simple wrapper of hashlib sha256. """
+    return _sha256(inp).digest()
+
+
+def double_sha256(inp):
+    """ sha256 of sha256, as used extensively in bitcoin """
+    return sha256(sha256(inp))
+
+
+def hash_to_hex_str(inp):
+    """Convert a big-endian binary hash to displayed hex string.
+    Display form of a binary hash is reversed and converted to hex.
+    """
+    return bytes(reversed(inp)).hex()

@@ -21,7 +21,6 @@ import asyncio
 import json
 from binascii import unhexlify
 
-from electrumobelisk.hashes import sha256, double_sha256, hash_to_hex_str
 from electrumobelisk.merkle import merkle_branch
 from electrumobelisk.util import (
     block_to_header,
@@ -30,6 +29,9 @@ from electrumobelisk.util import (
     is_hex_str,
     is_non_negative_integer,
     safe_hexlify,
+    sha256,
+    double_sha256,
+    hash_to_hex_str,
 )
 from electrumobelisk.zeromq import Client
 
