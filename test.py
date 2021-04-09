@@ -124,6 +124,10 @@ async def test_blockchain_scripthash_get_history(protocol, writer):
             "705c4f265df23726c09c5acb80f9e8a85845c17d68974d89814383855c8545a2",
         ),
         (
+            1936171,
+            "705c4f265df23726c09c5acb80f9e8a85845c17d68974d89814383855c8545a2",
+        ),
+        (
             1970700,
             "a9c3c22cc2589284288b28e802ea81723d649210d59dfa7e03af00475f4cec20",
         ),

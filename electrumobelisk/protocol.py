@@ -24,6 +24,7 @@ from binascii import unhexlify
 from electrumobelisk.errors import ERRORS
 from electrumobelisk.merkle import merkle_branch
 from electrumobelisk.util import (
+    bh2u,
     block_to_header,
     is_boolean,
     is_hash256_str,
@@ -344,11 +345,16 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         ret = []
         # TODO: mempool
         for i in data:
-            kind = "received" if "received" in i else "spent"
-            ret.append({
-                "height": i[kind]["height"],
-                "tx_hash": safe_hexlify(i[kind]["hash"][::-1]),
-            })
+            if "received" in i:
+                ret.append({
+                    "height": i["received"]["height"],
+                    "tx_hash": hash_to_hex_str(i["received"]["hash"]),
+                })
+            if "spent" in i:
+                ret.append({
+                    "height": i["spent"]["height"],
+                    "tx_hash": hash_to_hex_str(i["spent"]["hash"]),
+                })
 
         return {"result": ret}
 
@@ -381,7 +387,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
             ret.append({
                 "tx_pos": rec["index"],
                 "value": i["value"],
-                "tx_hash": safe_hexlify(rec["hash"][::-1]),
+                "tx_hash": hash_to_hex_str(rec["hash"]),
                 "height": rec["height"],
             })
         return {"result": ret}
@@ -423,18 +429,26 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         # TODO: Check how history4 acts for mempool/unconfirmed
         status = []
         for i in history:
-            kind = "received" if "received" in i else "spent"
-            status.append(safe_hexlify(i[kind]["hash"][::-1]))
-            status.append(str(i[kind]["height"]))  # str because of join
+            if "received" in i:
+                status.append((
+                    hash_to_hex_str(i["received"]["hash"]),
+                    i["received"]["height"],
+                ))
+            if "spent" in i:
+                status.append((
+                    hash_to_hex_str(i["spent"]["hash"]),
+                    i["spent"]["height"],
+                ))
 
         self.sh_subscriptions[scripthash]["status"] = status
         return {"result": ElectrumProtocol.__scripthash_status(status)}
 
     @staticmethod
     def __scripthash_status(status):
-        # TODO: Check if trailing colon is necessary
-        concat = ":".join(status) + ":"
-        return hash_to_hex_str(sha256(concat.encode()))
+        concat = ""
+        for txid, height in status:
+            concat += txid + ":%d:" % height
+        return bh2u(sha256(concat.encode("ascii")))
 
     async def blockchain_scripthash_unsubscribe(self, writer, query):  # pylint: disable=W0613
         """Method: blockchain.scripthash.unsubscribe
@@ -561,7 +575,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
 
         # Decouple from tuples
         hashes = [i[0] for i in hashes]
-        txid = safe_hexlify(hashes[tx_pos][::-1])
+        txid = hash_to_hex_str(hashes[tx_pos])
 
         if not merkle:
             return {"result": txid}
