@@ -604,10 +604,8 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
                 "genesis_hash": self.genesis,
                 "hosts": {
                     cfg["server_hostname"]: {
-                        "tcp_port":
-                        None if cfg["using_tls"] else cfg["server_port"],
-                        "ssl_port":
-                        cfg["server_port"] if cfg["using_tls"] else None,
+                        "tcp_port": cfg["server_port"],
+                        "ssl_port": None,
                     },
                 },
                 "protocol_max": SERVER_PROTO_MAX,

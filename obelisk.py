@@ -19,10 +19,8 @@ import sys
 from argparse import ArgumentParser
 from configparser import RawConfigParser, NoSectionError
 from logging import getLogger, FileHandler, Formatter, StreamHandler, DEBUG
-from os.path import exists, join
+from os.path import join
 from tempfile import gettempdir
-
-from pkg_resources import resource_filename
 
 from electrumobelisk.protocol import ElectrumProtocol, VERSION
 
@@ -58,31 +56,11 @@ def logger_config(log, config):
     return log, filename
 
 
-def get_certs(config):
-    """Get file paths to TLS cert and key"""
-    certfile = config.get("obelisk", "certfile", fallback=None)
-    keyfile = config.get("obelisk", "keyfile", fallback=None)
-    if (certfile and keyfile) and (exists(certfile) and exists(keyfile)):
-        return certfile, keyfile
-
-    certfile = resource_filename("electrumobelisk", "certs/cert.pem")
-    keyfile = resource_filename("electrumobelisk", "certs/cert.key")
-    if exists(certfile) and exists(keyfile):
-        return certfile, keyfile
-
-    raise ValueError(f"TLS keypair not found ({certfile}, {keyfile})")
-
-
 async def run_electrum_server(config, chain):
     """Server coroutine"""
     log = getLogger("obelisk")
     host = config.get("obelisk", "host")
     port = int(config.get("obelisk", "port"))
-    usetls = config.getboolean("obelisk", "usetls", fallback=False)
-
-    if usetls:
-        certfile, keyfile = get_certs(config)
-        log.debug("Using TLS with keypair: %s , %s", certfile, keyfile)
 
     broadcast_method = config.get("obelisk",
                                   "broadcast_method",
@@ -101,7 +79,6 @@ async def run_electrum_server(config, chain):
     server_cfg["broadcast_method"] = broadcast_method
     server_cfg["server_hostname"] = "localhost"  # TODO: <- should be public?
     server_cfg["server_port"] = port
-    server_cfg["using_tls"] = usetls
 
     global PROTOCOL
     PROTOCOL = ElectrumProtocol(log, chain, endpoints, server_cfg)
