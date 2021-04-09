@@ -354,11 +354,6 @@ class Client:
 
     async def fetch_history4(self, scripthash, height=0):
         """Fetch history for given scripthash"""
-        # BUG: There is something strange happening sometimes, for example
-        # on testnet, where the following scripthash returns as if the
-        # coins are spent, but in fact they are not:
-        # 8cc0f8d0cc3808540466194713e9fe618f57a2585a18d93d6d9542c0b71edd92
-        # 92dd1eb7c042956d3dd9185a58a2578f61fee91347196604540838ccd0f8c08c
         command = b"blockchain.fetch_history4"
         decoded_address = unhexlify(scripthash)
         error_code, raw_points = await self._simple_request(
