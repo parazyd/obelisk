@@ -115,9 +115,11 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         """Destructor function"""
         self.log.debug("ElectrumProtocol.stop()")
         if self.bx:
+            unsub_pool = []
             for i in self.sh_subscriptions:
                 self.log.debug("bx.unsubscribe %s", i)
-                await self.bx.unsubscribe_scripthash(i)
+                unsub_pool.append(self.bx.unsubscribe_scripthash(i))
+            await asyncio.gather(*unsub_pool, return_exceptions=True)
             await self.bx.stop()
 
         # idxs = []
