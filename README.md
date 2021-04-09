@@ -27,7 +27,13 @@ TODO
 Usage
 -----
 
-TBD
+Set up [obelisk.cfg](res/obelisk.cfg), and run
+
+```
+./obelisk.py ./res/obelisk.cfg
+```
+
+Some kind of setuptools installation should be written eventually.
 
 
 License
