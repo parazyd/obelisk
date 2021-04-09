@@ -120,12 +120,12 @@ async def test_blockchain_scripthash_get_history(protocol, writer):
             "084eba0e08c78b63e07535b74a5a849994d49afade95d0d205e4963e3f568600",
         ),
         (
-            1970700,
-            "a9c3c22cc2589284288b28e802ea81723d649210d59dfa7e03af00475f4cec20",
-        ),
-        (
             1936171,
             "705c4f265df23726c09c5acb80f9e8a85845c17d68974d89814383855c8545a2",
+        ),
+        (
+            1970700,
+            "a9c3c22cc2589284288b28e802ea81723d649210d59dfa7e03af00475f4cec20",
         ),
     ]
 
@@ -134,8 +134,8 @@ async def test_blockchain_scripthash_get_history(protocol, writer):
         params = {"params": [i]}
         data = await protocol.blockchain_scripthash_get_history(writer, params)
         if "result" in data:
-            for i in data["result"]:
-                res.append((i["height"], i["tx_hash"]))
+            for j in data["result"]:
+                res.append((j["height"], j["tx_hash"]))
 
     if expect != res:
         return "blockchain_scripthash_get_history", False
@@ -143,7 +143,36 @@ async def test_blockchain_scripthash_get_history(protocol, writer):
     return "blockchain_scripthash_get_history", True
 
 
+async def test_blockchain_scripthash_listunspent(protocol, writer):
+    shs = [
+        "c036b0ff3ad79662cd517cd5fe1fa0af07377b9262d16f276f11ced69aaa6921",
+        "92dd1eb7c042956d3dd9185a58a2578f61fee91347196604540838ccd0f8c08c",
+    ]
+
+    expect = [
+        [],
+        [1, 731000, 1936171],
+        [1, 100000, 1970700],
+    ]
+
+    res = []
+    for i in shs:
+        params = {"params": [i]}
+        data = await protocol.blockchain_scripthash_listunspent(writer, params)
+        if "result" in data and len(data["result"]) > 0:
+            for j in data["result"]:
+                res.append([j["tx_pos"], j["value"], j["height"]])
+        else:
+            res.append([])
+
+    if res != expect:
+        return "blockchain_scripthash_listunspent", False
+
+    return "blockchain_scripthash_listunspent", True
+
+
 class MockWriter(asyncio.StreamWriter):
+    """Mock class for StreamWriter"""
     def __init__(self):
         self.mock = None
 
@@ -170,7 +199,7 @@ async def main():
         test_blockchain_scripthash_get_balance,
         test_blockchain_scripthash_get_history,
         # test_blockchain_scripthash_get_mempool,
-        # test_blockchain_scripthash_listunspent,
+        test_blockchain_scripthash_listunspent,
         # test_blockchain_scripthash_subscribe,
         # test_blockchain_scripthash_unsubscribe,
         # test_blockchain_transaction_broadcast,
