@@ -76,6 +76,39 @@ async def test_blockchain_relayfee(protocol, writer):
     return "blockchain_relayfee", True
 
 
+async def test_blockchain_scripthash_get_balance(protocol, writer):
+    shs = [
+        "c036b0ff3ad79662cd517cd5fe1fa0af07377b9262d16f276f11ced69aaa6921",
+        "92dd1eb7c042956d3dd9185a58a2578f61fee91347196604540838ccd0f8c08c",
+    ]
+    expect = [
+        {
+            "result": {
+                "confirmed": 0,
+                "unconfirmed": 0
+            }
+        },
+        {
+            "result": {
+                "confirmed": 831000,
+                "unconfirmed": 0
+            }
+        },
+    ]
+
+    res = []
+    for i in shs:
+        params = {"params": [i]}
+        res.append(await
+                   protocol.blockchain_scripthash_get_balance(writer, params))
+
+    for i in expect:
+        if res[expect.index(i)] != i:
+            return "blockchain_scripthash_get_balance", False
+
+    return "blockchain_scripthash_get_balance", True
+
+
 class MockWriter(asyncio.StreamWriter):
     def __init__(self):
         self.mock = None
@@ -100,7 +133,7 @@ async def main():
         test_blockchain_estimatefee,
         # test_blockchain_headers_subscribe,
         test_blockchain_relayfee,
-        # test_blockchain_scripthash_get_balance,
+        test_blockchain_scripthash_get_balance,
         # test_blockchain_scripthash_get_history,
         # test_blockchain_scripthash_get_mempool,
         # test_blockchain_scripthash_listunspent,
