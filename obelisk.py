@@ -18,9 +18,8 @@ import asyncio
 import sys
 from argparse import ArgumentParser
 from configparser import RawConfigParser, NoSectionError
-from logging import getLogger, FileHandler, Formatter, StreamHandler, DEBUG
-from os.path import join
-from tempfile import gettempdir
+from logging import getLogger, FileHandler, Formatter, StreamHandler
+from os import devnull
 
 from electrumobelisk.protocol import ElectrumProtocol, VERSION
 
@@ -30,29 +29,19 @@ PROTOCOL = None
 
 def logger_config(log, config):
     """Setup logging"""
-    fmt = Formatter(
-        config.get(
-            "obelisk",
-            "log_format",
-            fallback="%(asctime)s\t%(levelname)s\t%(message)s",
-        ))
+    fmt = Formatter("%(asctime)s\t%(levelname)s\t%(message)s")
     logstream = StreamHandler()
     logstream.setFormatter(fmt)
-    logstream.setLevel(
-        config.get("obelisk", "log_level_stdout", fallback="DEBUG"))
+    debuglevel = config.get("obelisk", "log_level", fallback="INFO")
+    logstream.setLevel(debuglevel)
     log.addHandler(logstream)
-    filename = config.get("obelisk", "log_file_location", fallback="")
-    if len(filename.strip()) == 0:
-        filename = join(gettempdir(), "obelisk.log")
-    logfile = FileHandler(
-        filename,
-        mode=("a" if config.get("obelisk", "append_log", fallback="false") else
-              "w"),
-    )
+    filename = config.get("obelisk", "log_file", fallback=devnull)
+    append_log = config.getboolean("obelisk", "append_log", fallback=False)
+    logfile = FileHandler(filename, mode=("a" if append_log else "w"))
     logfile.setFormatter(fmt)
-    logfile.setLevel(DEBUG)
+    logfile.setLevel(debuglevel)
     log.addHandler(logfile)
-    log.setLevel(DEBUG)
+    log.setLevel(debuglevel)
     return log, filename
 
 
@@ -62,12 +51,6 @@ async def run_electrum_server(config, chain):
     host = config.get("obelisk", "host")
     port = int(config.get("obelisk", "port"))
 
-    broadcast_method = config.get("obelisk",
-                                  "broadcast_method",
-                                  fallback="tor")
-    tor_host = config.get("obelisk", "tor_host", fallback="localhost")
-    tor_port = int(config.get("obelisk", "tor_port", fallback=9050))
-
     endpoints = {}
     endpoints["query"] = config.get("obelisk", "query")
     endpoints["heart"] = config.get("obelisk", "heart")
@@ -75,8 +58,6 @@ async def run_electrum_server(config, chain):
     endpoints["trans"] = config.get("obelisk", "trans")
 
     server_cfg = {}
-    server_cfg["torhostport"] = (tor_host, tor_port)
-    server_cfg["broadcast_method"] = broadcast_method
     server_cfg["server_hostname"] = "localhost"  # TODO: <- should be public?
     server_cfg["server_port"] = port
 
