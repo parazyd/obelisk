@@ -317,7 +317,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
 
         _ec, data = await self.bx.fetch_balance(query["params"][0])
         if _ec and _ec != 0:
-            self.log.debug("Got erorr: %s", repr(_ec))
+            self.log.debug("Got error: %s", repr(_ec))
             return {"error": "request corrupted"}
 
         # TODO: confirmed/unconfirmed, see what's happening in libbitcoin

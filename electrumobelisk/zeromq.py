@@ -23,7 +23,6 @@ from random import randint
 
 import zmq
 import zmq.asyncio
-from bitcoin.core import COutPoint
 
 from electrumobelisk.libbitcoin_errors import make_error_code, ErrorCode
 from electrumobelisk.util import bh2u
@@ -371,7 +370,7 @@ class Client:
             kind, height, tx_hash, index, value = row
             return (
                 kind,
-                COutPoint(tx_hash, index),
+                {"hash": tx_hash, "index": index},
                 height,
                 value,
                 checksum(tx_hash[::-1].hex(), index),
@@ -439,9 +438,9 @@ class Client:
                 continue
 
             spent = {
-                "hash": point[1].hash,
+                "hash": point[1]["hash"],
                 "height": point[2],
-                "index": point[1].n,
+                "index": point[1]["index"],
             }
             if point[3] not in checksum_to_index:
                 transfers.append({"spent": spent})
@@ -461,9 +460,9 @@ class Client:
 
             transfers.append({
                 "received": {
-                    "hash": point[1].hash,
+                    "hash": point[1]["hash"],
                     "height": point[2],
-                    "index": point[1].n,
+                    "index": point[1]["index"],
                 },
                 "value": point[3],
             })
