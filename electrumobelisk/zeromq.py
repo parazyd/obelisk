@@ -324,7 +324,7 @@ class Client:
             bytes.fromhex(txid)[::-1])
         if error_code:
             return error_code, None
-        return error_code, bh2u(data)
+        return error_code, data
 
     async def fetch_mempool_transaction(self, txid):
         """Fetch transaction by txid (including mempool)"""
@@ -334,7 +334,7 @@ class Client:
             bytes.fromhex(txid)[::-1])
         if error_code:
             return error_code, None
-        return error_code, bh2u(data)
+        return error_code, data
 
     async def subscribe_scripthash(self, scripthash):
         """Subscribe to scripthash"""

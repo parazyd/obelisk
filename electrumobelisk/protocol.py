@@ -507,13 +507,13 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
 
         # Behaviour is undefined in spec
         if not rawtx:
-            return {"result", None}
+            return {"result": None}
 
         if verbose:
             # TODO: Help needed
             return ERRORS["invalidrequest"]
 
-        return {"result", safe_hexlify(rawtx)}
+        return {"result": bh2u(rawtx)}
 
     async def blockchain_transaction_get_merkle(self, writer, query):  # pylint: disable=W0613
         """Method: blockchain.transaction.get_merkle

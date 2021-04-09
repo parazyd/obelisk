@@ -105,7 +105,6 @@ async def test_blockchain_scripthash_get_balance(protocol, writer):
     for i in expect:
         if res[expect.index(i)] != i:
             return "blockchain_scripthash_get_balance", False
-
     return "blockchain_scripthash_get_balance", True
 
 
@@ -143,7 +142,6 @@ async def test_blockchain_scripthash_get_history(protocol, writer):
 
     if expect != res:
         return "blockchain_scripthash_get_history", False
-
     return "blockchain_scripthash_get_history", True
 
 
@@ -171,8 +169,20 @@ async def test_blockchain_scripthash_listunspent(protocol, writer):
 
     if res != expect:
         return "blockchain_scripthash_listunspent", False
-
     return "blockchain_scripthash_listunspent", True
+
+
+async def test_blockchain_transaction_get(protocol, writer):
+    expect = "020000000001011caa5f4ba91ff0ab77712851c1b17943e68f28d46bb0d96cbc13cdbef53c2b87000000001716001412e6e94028ab399b67c1232383d12f1dd3fc03b5feffffff02a40111000000000017a914ff1d7f4c85c562764ca16daa11e97d10eda52ebf87a0860100000000001976a9144a0360eac874a569e82ca6b17274d90bccbcab5e88ac0247304402205392417f5ffba2c0f3a501476fb6872368b2065c53bf18b2a201691fb88cdbe5022016c68ec9e094ba2b06d4bdc6af996ac74b580ab9728c622bb5304aaff04cb6980121031092742ffdf5901ceafcccec090c58170ce1d0ec26963ef7c7a2738a415a317e0b121e00"
+    params = {
+        "params":
+        ["a9c3c22cc2589284288b28e802ea81723d649210d59dfa7e03af00475f4cec20"]
+    }
+    data = await protocol.blockchain_transaction_get(writer, params)
+
+    if "result" not in data and data["result"] != expect:
+        return "blockchain_transaction_get", False
+    return "blockchain_transaction_get", True
 
 
 class MockWriter(asyncio.StreamWriter):
@@ -207,7 +217,7 @@ async def main():
         # test_blockchain_scripthash_subscribe,
         # test_blockchain_scripthash_unsubscribe,
         # test_blockchain_transaction_broadcast,
-        # test_blockchain_transaction_get,
+        test_blockchain_transaction_get,
         # test_blockchain_transaction_get_merkle,
         # test_blockchain_transaction_from_pos,
         # test_mempool_get_fee_histogram,
