@@ -3,11 +3,11 @@ obelisk
 
 ![obelisk](res/obelisk.png)
 
-![Tests](https://github.com/parazyd/obelisk/actions/workflows/py.yaml/badge.svg)
-
 A **work-in-progress** implementation of an
 [Electrum](https://electrum.org) server using
 [libbitcoin](https://libbitcoin.info) as a backend.
+
+![Tests](https://github.com/parazyd/obelisk/actions/workflows/py.yaml/badge.svg)
 
 Please consider donating to support development:
 
