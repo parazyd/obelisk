@@ -379,7 +379,14 @@ class Client:
         correlated_points = Client.__correlate(points)
         # self.log.debug("history points: %s", points)
         # self.log.debug("history correlated: %s", correlated_points)
-        return error_code, correlated_points
+        return error_code, self._sort_correlated_points(correlated_points)
+
+    @staticmethod
+    def _sort_correlated_points(points):
+        """Sort by ascending height"""
+        if len(points) < 2:
+            return points
+        return sorted(points, key=lambda x: list(x.values())[0]["height"])
 
     async def broadcast_transaction(self, rawtx):
         """Broadcast given raw transaction"""
