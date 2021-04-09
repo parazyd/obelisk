@@ -21,6 +21,7 @@ import asyncio
 import json
 from binascii import unhexlify
 
+from electrumobelisk.errors import ERRORS
 from electrumobelisk.merkle import merkle_branch
 from electrumobelisk.util import (
     block_to_header,
@@ -196,7 +197,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         func = self.methodmap.get(method)
         if not func:
             self.log.error("Unhandled method %s, query=%s", method, query)
-            return
+            return await self._send_reply(writer, ERRORS["nomethod"], query)
         resp = await func(writer, query)
         return await self._send_reply(writer, resp, query)
 
@@ -205,20 +206,20 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         Return the block header at the given height.
         """
         if "params" not in query or len(query["params"]) < 1:
-            return {"error": "malformed query"}
+            return ERRORS["invalidparams"]
         # TODO: cp_height
         index = query["params"][0]
         cp_height = query["params"][1] if len(query["params"]) == 2 else 0
 
         if not is_non_negative_integer(index):
-            return {"error": "invalid block height"}
+            return ERRORS["invalidparams"]
         if not is_non_negative_integer(cp_height):
-            return {"error": "invalid cp_height"}
+            return ERRORS["invalidparams"]
 
         _ec, data = await self.bx.fetch_block_header(index)
         if _ec and _ec != 0:
             self.log.debug("Got error: %s", repr(_ec))
-            return {"error": "request corrupted"}
+            return ERRORS["internalerror"]
         return {"result": safe_hexlify(data)}
 
     async def blockchain_block_headers(self, writer, query):  # pylint: disable=W0613
@@ -226,7 +227,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         Return a concatenated chunk of block headers from the main chain.
         """
         if "params" not in query or len(query["params"]) < 2:
-            return {"error": "malformed query"}
+            return ERRORS["invalidparams"]
         # Electrum doesn't allow max_chunk_size to be less than 2016
         # gopher://bitreich.org/9/memecache/convenience-store.mkv
         # TODO: cp_height
@@ -235,9 +236,9 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         count = query["params"][1]
 
         if not is_non_negative_integer(start_height):
-            return {"error": "invalid start_height"}
+            return ERRORS["invalidparams"]
         if not is_non_negative_integer(count):
-            return {"error": "invalid count"}
+            return ERRORS["invalidparams"]
 
         count = min(count, max_chunk_size)
         headers = bytearray()
@@ -245,7 +246,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
             _ec, data = await self.bx.fetch_block_header(i)
             if _ec and _ec != 0:
                 self.log.debug("Got error: %s", repr(_ec))
-                return {"error": "request corrupted"}
+                return ERRORS["internalerror"]
             headers.extend(data)
 
         resp = {
@@ -287,11 +288,11 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         _ec, height = await self.bx.fetch_last_height()
         if _ec and _ec != 0:
             self.log.debug("Got error: %s", repr(_ec))
-            return {"error": "internal error"}
+            return ERRORS["internalerror"]
         _ec, tip_header = await self.bx.fetch_block_header(height)
         if _ec and _ec != 0:
             self.log.debug("Got error: %s", repr(_ec))
-            return {"error": "internal error"}
+            return ERRORS["internalerror"]
 
         self.tasks.append(asyncio.create_task(self.header_notifier(writer)))
         ret = {"height": height, "hex": safe_hexlify(tip_header)}
@@ -310,15 +311,15 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         Return the confirmed and unconfirmed balances of a script hash.
         """
         if "params" not in query or len(query["params"]) != 1:
-            return {"error": "malformed query"}
+            return ERRORS["invalidparams"]
 
         if not is_hash256_str(query["params"][0]):
-            return {"error": "invalid scripthash"}
+            return ERRORS["invalidparams"]
 
         _ec, data = await self.bx.fetch_balance(query["params"][0])
         if _ec and _ec != 0:
             self.log.debug("Got error: %s", repr(_ec))
-            return {"error": "request corrupted"}
+            return ERRORS["internalerror"]
 
         # TODO: confirmed/unconfirmed, see what's happening in libbitcoin
         ret = {"confirmed": data, "unconfirmed": 0}
@@ -329,15 +330,15 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         Return the confirmed and unconfirmed history of a script hash.
         """
         if "params" not in query or len(query["params"]) != 1:
-            return {"error": "malformed query"}
+            return ERRORS["invalidparams"]
 
         if not is_hash256_str(query["params"][0]):
-            return {"error": "invalid scripthash"}
+            return ERRORS["invalidparams"]
 
         _ec, data = await self.bx.fetch_history4(query["params"][0])
         if _ec and _ec != 0:
             self.log.debug("Got error: %s", repr(_ec))
-            return {"error": "request corrupted"}
+            return ERRORS["internalerror"]
 
         self.log.debug("hist: %s", data)
         ret = []
@@ -362,16 +363,16 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         Return an ordered list of UTXOs sent to a script hash.
         """
         if "params" not in query or len(query["params"]) != 1:
-            return {"error": "malformed request"}
+            return ERRORS["invalidparams"]
 
         scripthash = query["params"][0]
         if not is_hash256_str(scripthash):
-            return {"error": "invalid scripthash"}
+            return ERRORS["invalidparams"]
 
         _ec, utxo = await self.bx.fetch_utxo(scripthash)
         if _ec and _ec != 0:
             self.log.debug("Got error: %s", repr(_ec))
-            return {"error": "internal error"}
+            return ERRORS["internalerror"]
 
         # TODO: Check mempool
         ret = []
@@ -402,15 +403,15 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         Subscribe to a script hash.
         """
         if "params" not in query or len(query["params"]) != 1:
-            return {"error": "malformed request"}
+            return ERRORS["invalidparamas"]
 
         scripthash = query["params"][0]
         if not is_hash256_str(scripthash):
-            return {"error": "invalid scripthash"}
+            return ERRORS["invalidparams"]
 
         _ec, history = await self.bx.fetch_history4(scripthash)
         if _ec and _ec != 0:
-            return {"error": "request corrupted"}
+            return ERRORS["internalerror"]
 
         task = asyncio.create_task(self.scripthash_notifier(
             writer, scripthash))
@@ -441,11 +442,11 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         if its status changes.
         """
         if "params" not in query or len(query["params"]) != 1:
-            return {"error": "malformed request"}
+            return ERRORS["invalidparams"]
 
         scripthash = query["params"][0]
         if not is_hash256_str(scripthash):
-            return {"error": "invalid scripthash"}
+            return ERRORS["invalidparams"]
 
         if scripthash in self.sh_subscriptions:
             self.sh_subscriptions[scripthash]["task"].cancel()
@@ -461,15 +462,15 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         """
         # Note: Not yet implemented in bs v4
         if "params" not in query or len(query["params"]) != 1:
-            return {"error": "malformed request"}
+            return ERRORS["invalidparams"]
 
         hextx = query["params"][0]
         if not is_hex_str(hextx):
-            return {"error": "tx is not a valid hex string"}
+            return ERRORS["invalidparams"]
 
         _ec, _ = await self.bx.broadcast_transaction(hextx)
         if _ec and _ec != 0:
-            return {"error": "request corrupted"}
+            return ERRORS["internalerror"]
 
         rawtx = unhexlify(hextx)
         txid = double_sha256(rawtx)
@@ -480,7 +481,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         Return a raw transaction.
         """
         if "params" not in query or len(query["params"]) < 1:
-            return {"error": "malformed request"}
+            return ERRORS["invalidparams"]
         tx_hash = query["params"][0]
         verbose = query["params"][1] if len(query["params"]) > 1 else False
 
@@ -488,13 +489,15 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         _ec, rawtx = await self.bx.fetch_mempool_transaction(tx_hash)
         if _ec and _ec != 0:
             self.log.debug("Got error: %s", repr(_ec))
-            return {"error": "request corrupted"}
+            return ERRORS["internalerror"]
+
+        # Behaviour is undefined in spec
         if not rawtx:
-            return {"error": f"txid {tx_hash} not found"}
+            return {"result", None}
 
         if verbose:
             # TODO: Help needed
-            return {"error": "not implemented with verbose=true"}
+            return ERRORS["invalidrequest"]
 
         return {"result", safe_hexlify(rawtx)}
 
@@ -504,19 +507,19 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         hash and height.
         """
         if "params" not in query or len(query["params"]) != 2:
-            return {"error": "malformed request"}
+            return ERRORS["invalidparams"]
         tx_hash = query["params"][0]
         height = query["params"][1]
 
         if not is_hash256_str(tx_hash):
-            return {"error": "tx_hash is not a txid"}
+            return ERRORS["invalidparams"]
         if not is_non_negative_integer(height):
-            return {"error": "height is not a block height"}
+            return ERRORS["invalidparams"]
 
         _ec, hashes = await self.bx.fetch_block_transaction_hashes(height)
         if _ec and _ec != 0:
             self.log.debug("Got error: %s", repr(_ec))
-            return {"error": "request corrupted"}
+            return ERRORS["internalerror"]
 
         # Decouple from tuples
         hashes = [i[0] for i in hashes]
@@ -536,25 +539,25 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         block height and a position in the block.
         """
         if "params" not in query or len(query["params"]) < 2:
-            return {"error": "malformed request"}
+            return ERRORS["invalidparams"]
         height = query["params"][0]
         tx_pos = query["params"][1]
         merkle = query["params"][2] if len(query["params"]) > 2 else False
 
         if not is_non_negative_integer(height):
-            return {"error": "height is not a non-negative integer"}
+            return ERRORS["invalidparams"]
         if not is_non_negative_integer(tx_pos):
-            return {"error": "tx_pos is not a non-negative integer"}
+            return ERRORS["invalidparams"]
         if not is_boolean(merkle):
-            return {"error": "merkle is not a boolean value"}
+            return ERRORS["invalidparams"]
 
         _ec, hashes = await self.bx.fetch_block_transaction_hashes(height)
         if _ec and _ec != 0:
             self.log.debug("Got error: %s", repr(_ec))
-            return {"error": "request corrupted"}
+            return ERRORS["internalerror"]
 
         if len(hashes) - 1 < tx_pos:
-            return {"error": "index not in block"}
+            return ERRORS["internalerror"]
 
         # Decouple from tuples
         hashes = [i[0] for i in hashes]
@@ -642,7 +645,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
             self.log.warning("Got a subsequent %s call", query["method"])
             return
         if "params" not in query or len(query["params"]) != 2:
-            return {"error": "malformed request"}
+            return ERRORS["invalidparams"]
         client_ver = query["params"][1]
         if isinstance(client_ver, list):
             client_min, client_max = client_ver[0], client_ver[1]
@@ -650,9 +653,6 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
             client_min = client_max = client_ver
         version = min(client_max, SERVER_PROTO_MAX)
         if version < max(client_min, SERVER_PROTO_MIN):
-            return {
-                "error":
-                f"client protocol version {client_ver} is not supported"
-            }
+            return ERRORS["protonotsupported"]
         self.version_called = True
         return {"response": [f"obelisk {VERSION}", version]}
