@@ -328,7 +328,28 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         """Method: blockchain.scripthash.get_history
         Return the confirmed and unconfirmed history of a script hash.
         """
-        return
+        if "params" not in query or len(query["params"]) != 1:
+            return {"error": "malformed query"}
+
+        if not is_hash256_str(query["params"][0]):
+            return {"error": "invalid scripthash"}
+
+        _ec, data = await self.bx.fetch_history4(query["params"][0])
+        if _ec and _ec != 0:
+            self.log.debug("Got error: %s", repr(_ec))
+            return {"error": "request corrupted"}
+
+        self.log.debug("hist: %s", data)
+        ret = []
+        # TODO: mempool
+        for i in data:
+            kind = "received" if "received" in i else "spent"
+            ret.append({
+                "height": i[kind]["height"],
+                "tx_hash": safe_hexlify(i[kind]["hash"][::-1]),
+            })
+
+        return {"result": ret}
 
     async def blockchain_scripthash_get_mempool(self, writer, query):  # pylint: disable=W0613
         """Method: blockchain.scripthash.get_mempool

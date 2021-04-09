@@ -370,7 +370,10 @@ class Client:
             kind, height, tx_hash, index, value = row
             return (
                 kind,
-                {"hash": tx_hash, "index": index},
+                {
+                    "hash": tx_hash,
+                    "index": index
+                },
                 height,
                 value,
                 checksum(tx_hash[::-1].hex(), index),

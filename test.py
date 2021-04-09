@@ -109,6 +109,40 @@ async def test_blockchain_scripthash_get_balance(protocol, writer):
     return "blockchain_scripthash_get_balance", True
 
 
+async def test_blockchain_scripthash_get_history(protocol, writer):
+    shs = [
+        "c036b0ff3ad79662cd517cd5fe1fa0af07377b9262d16f276f11ced69aaa6921",
+        "92dd1eb7c042956d3dd9185a58a2578f61fee91347196604540838ccd0f8c08c",
+    ]
+    expect = [
+        (
+            1936167,
+            "084eba0e08c78b63e07535b74a5a849994d49afade95d0d205e4963e3f568600",
+        ),
+        (
+            1970700,
+            "a9c3c22cc2589284288b28e802ea81723d649210d59dfa7e03af00475f4cec20",
+        ),
+        (
+            1936171,
+            "705c4f265df23726c09c5acb80f9e8a85845c17d68974d89814383855c8545a2",
+        ),
+    ]
+
+    res = []
+    for i in shs:
+        params = {"params": [i]}
+        data = await protocol.blockchain_scripthash_get_history(writer, params)
+        if "result" in data:
+            for i in data["result"]:
+                res.append((i["height"], i["tx_hash"]))
+
+    if expect != res:
+        return "blockchain_scripthash_get_history", False
+
+    return "blockchain_scripthash_get_history", True
+
+
 class MockWriter(asyncio.StreamWriter):
     def __init__(self):
         self.mock = None
@@ -134,7 +168,7 @@ async def main():
         # test_blockchain_headers_subscribe,
         test_blockchain_relayfee,
         test_blockchain_scripthash_get_balance,
-        # test_blockchain_scripthash_get_history,
+        test_blockchain_scripthash_get_history,
         # test_blockchain_scripthash_get_mempool,
         # test_blockchain_scripthash_listunspent,
         # test_blockchain_scripthash_subscribe,
