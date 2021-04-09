@@ -61,8 +61,6 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         self.endpoints = endpoints
         self.server_cfg = server_cfg
         self.loop = asyncio.get_event_loop()
-        # In spec, version shouldn't be called more than once
-        self.version_called = False
         # Consider renaming bx to something else
         self.bx = Client(log, endpoints, self.loop)
         self.block_queue = None
@@ -639,11 +637,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
     async def server_version(self, writer, query):  # pylint: disable=W0613
         """Method: server.version
         Identify the client to the server and negotiate the protocol version.
-        Only the first server.version() message is accepted.
         """
-        if self.version_called:
-            self.log.warning("Got a subsequent %s call", query["method"])
-            return
         if "params" not in query or len(query["params"]) != 2:
             return ERRORS["invalidparams"]
         client_ver = query["params"][1]
@@ -654,5 +648,4 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         version = min(client_max, SERVER_PROTO_MAX)
         if version < max(client_min, SERVER_PROTO_MIN):
             return ERRORS["protonotsupported"]
-        self.version_called = True
-        return {"response": [f"obelisk {VERSION}", version]}
+        return {"result": [f"obelisk {VERSION}", version]}
