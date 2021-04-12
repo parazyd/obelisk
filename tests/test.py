@@ -18,7 +18,7 @@ import asyncio
 import sys
 from logging import getLogger
 
-from electrumobelisk.protocol import ElectrumProtocol
+from obelisk.protocol import ElectrumProtocol
 
 #
 # See bottom of this file for test orchestration.
