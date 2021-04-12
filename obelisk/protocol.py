@@ -22,7 +22,7 @@ import json
 from binascii import unhexlify
 
 from obelisk.errors import ERRORS
-from obelisk.merkle import merkle_branch
+from obelisk.merkle import merkle_branch, merkle_branch_and_root
 from obelisk.util import (
     bh2u,
     block_to_header,
@@ -208,7 +208,6 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         """
         if "params" not in query or len(query["params"]) < 1:
             return ERRORS["invalidparams"]
-        # TODO: cp_height
         index = query["params"][0]
         cp_height = query["params"][1] if len(query["params"]) == 2 else 0
 
@@ -216,12 +215,34 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
             return ERRORS["invalidparams"]
         if not is_non_negative_integer(cp_height):
             return ERRORS["invalidparams"]
+        if cp_height != 0 and not index <= cp_height:
+            return ERRORS["invalidparams"]
 
-        _ec, data = await self.bx.fetch_block_header(index)
-        if _ec and _ec != 0:
-            self.log.debug("Got error: %s", repr(_ec))
-            return ERRORS["internalerror"]
-        return {"result": safe_hexlify(data)}
+        if cp_height == 0:
+            _ec, header = await self.bx.fetch_block_header(index)
+            if _ec and _ec != 0:
+                self.log.debug("Got error: %s", repr(_ec))
+                return ERRORS["internalerror"]
+            return {"result": safe_hexlify(header)}
+
+        cp_headers = []
+        # headers up to and including cp_height
+        for i in range(index, cp_height + 1):
+            _ec, data = await self.bx.fetch_block_header(i)
+            if _ec and _ec != 0:
+                self.log.debug("Got error: %s", repr(_ec))
+                return ERRORS["internalerror"]
+            cp_headers.append(data)
+
+        # TODO: Review
+        branch, root = merkle_branch_and_root(cp_headers, 0)
+        return {
+            "result": {
+                "branch": [safe_hexlify(i) for i in branch],
+                "header": safe_hexlify(cp_headers[0]),
+                "root": safe_hexlify(root),
+            }
+        }
 
     async def blockchain_block_headers(self, writer, query):  # pylint: disable=W0613
         """Method: blockchain.block.headers
