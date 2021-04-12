@@ -24,8 +24,8 @@ from random import randint
 import zmq
 import zmq.asyncio
 
-from electrumobelisk.libbitcoin_errors import make_error_code, ErrorCode
-from electrumobelisk.util import bh2u
+from obelisk.libbitcoin_errors import make_error_code, ErrorCode
+from obelisk.util import bh2u
 
 
 def create_random_id():

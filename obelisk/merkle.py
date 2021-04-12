@@ -17,7 +17,7 @@
 """Module for calculating merkle branches"""
 from math import ceil, log
 
-from electrumobelisk.util import double_sha256
+from obelisk.util import double_sha256
 
 
 def branch_length(hash_count):

@@ -21,7 +21,7 @@ from configparser import RawConfigParser, NoSectionError
 from logging import getLogger, FileHandler, Formatter, StreamHandler
 from os import devnull
 
-from electrumobelisk.protocol import ElectrumProtocol, VERSION
+from obelisk.protocol import ElectrumProtocol, VERSION
 
 # Used for destructor/cleanup
 PROTOCOL = None

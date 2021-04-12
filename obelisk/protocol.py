@@ -21,9 +21,9 @@ import asyncio
 import json
 from binascii import unhexlify
 
-from electrumobelisk.errors import ERRORS
-from electrumobelisk.merkle import merkle_branch
-from electrumobelisk.util import (
+from obelisk.errors import ERRORS
+from obelisk.merkle import merkle_branch
+from obelisk.util import (
     bh2u,
     block_to_header,
     is_boolean,
@@ -35,7 +35,7 @@ from electrumobelisk.util import (
     double_sha256,
     hash_to_hex_str,
 )
-from electrumobelisk.zeromq import Client
+from obelisk.zeromq import Client
 
 VERSION = "0.0"
 SERVER_PROTO_MIN = "1.4"
