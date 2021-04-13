@@ -25,6 +25,13 @@ TODO
 * git grep -E "TODO:|BUG:"
 
 
+Dependencies
+------------
+
+* Python 3
+* pyzmq (python3-zmq or dev-python/pyzmq)
+
+
 Usage
 -----
 
@@ -34,8 +41,13 @@ Set up [obelisk.cfg](res/obelisk.cfg), and run
 ./run_obelisk ./res/obelisk.cfg
 ```
 
+Obelisk can use either public libbitcoin v4 servers, or your local
+libbitcoin-server if you have a running installation. Currently,
+**only testnet v4 public servers are available**, and they're set up
+as default in the configuration file.
+
 Obelisk can also be installed with setuptools:
 
 ```
-python3 setup.py install
+python3 setup.py install --user
 ```
