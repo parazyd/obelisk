@@ -35,45 +35,29 @@ ENDPOINTS = {
 async def test_blockchain_block_header(protocol, writer):
     expect = "01000000c54675276e0401706aa93db6494dd7d1058b19424f23c8d7c01076da000000001c4375c8056b0ded0fa3d7fc1b5511eaf53216aed72ea95e1b5d19eccbe855f91a184a4dffff001d0336a226"
     query = {"params": [123]}
-    res = await protocol.blockchain_block_header(writer, query)
-    if "error" in res and "result" not in res:
-        return "blockchain_block_header", False
-    if res["result"] != expect:
-        return "blockchain_block_header", False
-    return "blockchain_block_header", True
+    data = await protocol.blockchain_block_header(writer, query)
+    assert data["result"] == expect
 
 
 async def test_blockchain_block_headers(protocol, writer):
     expect = "0100000000000000000000000000000000000000000000000000000000000000000000003ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e4adae5494dffff001d1aa4ae180100000043497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea330900000000bac8b0fa927c0ac8234287e33c5f74d38d354820e24756ad709d7038fc5f31f020e7494dffff001d03e4b6720100000006128e87be8b1b4dea47a7247d5528d2702c96826c7a648497e773b800000000e241352e3bec0a95a6217e10c3abb54adfa05abb12c126695595580fb92e222032e7494dffff001d00d23534"
     query = {"params": [123, 3]}
-    res = await protocol.blockchain_block_headers(writer, query)
-    if "error" in res and "result" not in res:
-        return "blockchain_block_headers", False
-    if res["result"]["hex"] != expect:
-        return "blockchain_block_headers", False
-    return "blockchain_block_headers", True
+    data = await protocol.blockchain_block_headers(writer, query)
+    assert data["result"]["hex"] == expect
 
 
 async def test_blockchain_estimatefee(protocol, writer):
     expect = -1
     query = {"params": []}
-    res = await protocol.blockchain_estimatefee(writer, query)
-    if "error" in res and "result" not in res:
-        return "blockchain_estimatefee", False
-    if res["result"] != expect:
-        return "blockchain_estimatefee", False
-    return "blockchain_estimatefee", True
+    data = await protocol.blockchain_estimatefee(writer, query)
+    assert data["result"] == expect
 
 
 async def test_blockchain_relayfee(protocol, writer):
     expect = 0.00001
     query = {"params": []}
-    res = await protocol.blockchain_relayfee(writer, query)
-    if "error" in res and "result" not in res:
-        return "blockchain_relayfee", False
-    if res["result"] != expect:
-        return "blockchain_relayfee", False
-    return "blockchain_relayfee", True
+    data = await protocol.blockchain_relayfee(writer, query)
+    assert data["result"] == expect
 
 
 async def test_blockchain_scripthash_get_balance(protocol, writer):
@@ -96,16 +80,14 @@ async def test_blockchain_scripthash_get_balance(protocol, writer):
         },
     ]
 
-    res = []
+    data = []
     for i in shs:
         params = {"params": [i]}
-        res.append(await
-                   protocol.blockchain_scripthash_get_balance(writer, params))
+        data.append(await
+                    protocol.blockchain_scripthash_get_balance(writer, params))
 
     for i in expect:
-        if res[expect.index(i)] != i:
-            return "blockchain_scripthash_get_balance", False
-    return "blockchain_scripthash_get_balance", True
+        assert data[expect.index(i)] == i
 
 
 async def test_blockchain_scripthash_get_history(protocol, writer):
@@ -140,9 +122,7 @@ async def test_blockchain_scripthash_get_history(protocol, writer):
             for j in data["result"]:
                 res.append((j["height"], j["tx_hash"]))
 
-    if expect != res:
-        return "blockchain_scripthash_get_history", False
-    return "blockchain_scripthash_get_history", True
+    assert res == expect
 
 
 async def test_blockchain_scripthash_listunspent(protocol, writer):
@@ -167,9 +147,7 @@ async def test_blockchain_scripthash_listunspent(protocol, writer):
         else:
             res.append([])
 
-    if res != expect:
-        return "blockchain_scripthash_listunspent", False
-    return "blockchain_scripthash_listunspent", True
+    assert res == expect
 
 
 async def test_blockchain_transaction_get(protocol, writer):
@@ -179,10 +157,23 @@ async def test_blockchain_transaction_get(protocol, writer):
         ["a9c3c22cc2589284288b28e802ea81723d649210d59dfa7e03af00475f4cec20"]
     }
     data = await protocol.blockchain_transaction_get(writer, params)
+    assert data["result"] == expect
 
-    if "result" not in data and data["result"] != expect:
-        return "blockchain_transaction_get", False
-    return "blockchain_transaction_get", True
+
+async def test_blockchain_transaction_from_pos(protocol, writer):
+    expect = "f50f1c9b9551db0cc6916cb590bb6ccb5dea8adcb40e0bc103c4440e04c95e3d"
+    params = {"params": [1839411, 0]}
+    data = await protocol.blockchain_transaction_from_pos(writer, params)
+    assert data["result"] == expect
+    return "blockchain_transaction_from_pos", True
+
+
+async def test_server_ping(protocol, writer):
+    expect = None
+    params = {"params": []}
+    data = await protocol.server_ping(writer, params)
+    assert data["result"] == expect
+    return "server_ping", True
 
 
 class MockWriter(asyncio.StreamWriter):
@@ -204,40 +195,44 @@ async def main():
     log = getLogger("obelisktest")
     protocol = ElectrumProtocol(log, "testnet", ENDPOINTS, {})
     writer = MockWriter()
-    functions = [
-        test_blockchain_block_header,
-        test_blockchain_block_headers,
-        test_blockchain_estimatefee,
-        # test_blockchain_headers_subscribe,
-        test_blockchain_relayfee,
+    functions = {
+        "blockchain_block_header": test_blockchain_block_header,
+        "blockchain_block_hedaers": test_blockchain_block_headers,
+        "blockchain_estimatefee": test_blockchain_estimatefee,
+        # "blockchain_headers_subscribe": test_blockchain_headers_subscribe,
+        "blockchain_relayfee": test_blockchain_relayfee,
+        "blockchain_scripthash_get_balance":
         test_blockchain_scripthash_get_balance,
+        "blockchain_scripthash_get_history":
         test_blockchain_scripthash_get_history,
-        # test_blockchain_scripthash_get_mempool,
+        # "blockchain_scripthash_get_mempool": test_blockchain_scripthash_get_mempool,
+        "blockchain_scripthash_listunspent":
         test_blockchain_scripthash_listunspent,
-        # test_blockchain_scripthash_subscribe,
-        # test_blockchain_scripthash_unsubscribe,
-        # test_blockchain_transaction_broadcast,
-        test_blockchain_transaction_get,
-        # test_blockchain_transaction_get_merkle,
-        # test_blockchain_transaction_from_pos,
-        # test_mempool_get_fee_histogram,
-        # test_server_add_peer,
-        # test_server_banner,
-        # test_server_donation_address,
-        # test_server_features,
-        # test_server_peers_subscribe,
-        # test_server_ping,
-        # test_server_version,
-    ]
+        # "blockchain_scripthash_subscribe": test_blockchain_scripthash_subscribe,
+        # "blockchain_scripthash_unsubscribe": test_blockchain_scripthash_unsubscribe,
+        # "blockchain_transaction_broadcast": test_blockchain_transaction_broadcast,
+        "blockchain_transaction_get": test_blockchain_transaction_get,
+        # "blockchain_transaction_get_merkle": test_blockchain_transaction_get_merkle,
+        "blockchain_transaction_from_pos":
+        test_blockchain_transaction_from_pos,
+        # "mempool_get_fee_histogram": test_mempool_get_fee_histogram,
+        # "server_add_peer": test_server_add_peer,
+        # "server_banner": test_server_banner,
+        # "server_donation_address": test_server_donation_address,
+        # "server_features": test_server_features,
+        # "server_peers_subscribe": test_server_peers_subscribe,
+        "server_ping": test_server_ping,
+        # "server_version": test_server_version,
+    }
 
     for func in functions:
-        name, result = await func(protocol, writer)
-        if result:
-            test_pass.append(name)
-            print(f"PASS: {name}")
-        else:
-            print(f"FAIL: {name}")
-            test_fail.append(name)
+        try:
+            await functions[func](protocol, writer)
+            print(f"PASS: {func}")
+            test_pass.append(func)
+        except AssertionError:
+            print(f"FAIL: {func}")
+            test_fail.append(func)
 
     await protocol.stop()
 
