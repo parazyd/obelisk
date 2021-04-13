@@ -51,3 +51,20 @@ Obelisk can also be installed with setuptools:
 ```
 python3 setup.py install --user
 ```
+
+
+Development
+-----------
+
+The code is written to be short and concise. `run_obelisk` is the
+entry point to start the server, but most of the actual logic is
+in `obelisk/protocol.py` and `obelisk/zeromq.py`. `protocol.py`
+implements the ElectrumX protocol, and `zeromq.py` implements the
+libbitcoin side of things.
+
+Before committing code, please run `./res/format_code.py` to format
+the codebase to a certain code style. This scripts depends on `black`
+and `yapf`.
+
+You can chat about Obelisk on Freenode IRC, either `#electrum` or
+`#libbitcoin`.
