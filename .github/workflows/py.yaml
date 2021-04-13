@@ -22,4 +22,4 @@ jobs:
             pip install -e .
         - name: Run tests
           run: |
-            python ./tests/test.py
+            python ./tests/test_electrum_protocol.py
