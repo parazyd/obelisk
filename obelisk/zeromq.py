@@ -25,7 +25,6 @@ import zmq
 import zmq.asyncio
 
 from obelisk.libbitcoin_errors import make_error_code, ErrorCode
-from obelisk.util import bh2u
 
 
 def create_random_id():
