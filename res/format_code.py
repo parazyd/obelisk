@@ -6,4 +6,4 @@
 from subprocess import run
 
 run(["black", "-l", "80", "."])
-run(["yapf", "-i", "-r", "."])
+run(["yapf", "--style", "google", "-i", "-r", "."])

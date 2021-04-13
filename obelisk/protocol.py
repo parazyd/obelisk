@@ -56,6 +56,7 @@ Please consider donating: %s
 
 class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
     """Class implementing the Electrum protocol, with async support"""
+
     def __init__(self, log, chain, endpoints, server_cfg):
         self.log = log
         self.stopped = False
@@ -78,38 +79,52 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
 
         # Here we map available methods to their respective functions
         self.methodmap = {
-            "blockchain.block.header": self.blockchain_block_header,
-            "blockchain.block.headers": self.blockchain_block_headers,
-            "blockchain.estimatefee": self.blockchain_estimatefee,
-            "blockchain.headers.subscribe": self.blockchain_headers_subscribe,
-            "blockchain.relayfee": self.blockchain_relayfee,
+            "blockchain.block.header":
+                self.blockchain_block_header,
+            "blockchain.block.headers":
+                self.blockchain_block_headers,
+            "blockchain.estimatefee":
+                self.blockchain_estimatefee,
+            "blockchain.headers.subscribe":
+                self.blockchain_headers_subscribe,
+            "blockchain.relayfee":
+                self.blockchain_relayfee,
             "blockchain.scripthash.get_balance":
-            self.blockchain_scripthash_get_balance,
+                self.blockchain_scripthash_get_balance,
             "blockchain.scripthash.get_history":
-            self.blockchain_scripthash_get_history,
+                self.blockchain_scripthash_get_history,
             "blockchain.scripthash.get_mempool":
-            self.blockchain_scripthash_get_mempool,
+                self.blockchain_scripthash_get_mempool,
             "blockchain.scripthash.listunspent":
-            self.blockchain_scripthash_listunspent,
+                self.blockchain_scripthash_listunspent,
             "blockchain.scripthash.subscribe":
-            self.blockchain_scripthash_subscribe,
+                self.blockchain_scripthash_subscribe,
             "blockchain.scripthash.unsubscribe":
-            self.blockchain_scripthash_unsubscribe,
+                self.blockchain_scripthash_unsubscribe,
             "blockchain.transaction.broadcast":
-            self.blockchain_transaction_broadcast,
-            "blockchain.transaction.get": self.blockchain_transaction_get,
+                self.blockchain_transaction_broadcast,
+            "blockchain.transaction.get":
+                self.blockchain_transaction_get,
             "blockchain.transaction.get_merkle":
-            self.blockchain_transaction_get_merkle,
+                self.blockchain_transaction_get_merkle,
             "blockchain.transaction.id_from_pos":
-            self.blockchain_transaction_from_pos,
-            "mempool.get_fee_histogram": self.mempool_get_fee_histogram,
-            "server_add_peer": self.server_add_peer,
-            "server.banner": self.server_banner,
-            "server.donation_address": self.server_donation_address,
-            "server.features": self.server_features,
-            "server.peers.subscribe": self.server_peers_subscribe,
-            "server.ping": self.server_ping,
-            "server.version": self.server_version,
+                self.blockchain_transaction_from_pos,
+            "mempool.get_fee_histogram":
+                self.mempool_get_fee_histogram,
+            "server_add_peer":
+                self.server_add_peer,
+            "server.banner":
+                self.server_banner,
+            "server.donation_address":
+                self.server_donation_address,
+            "server.features":
+                self.server_features,
+            "server.peers.subscribe":
+                self.server_peers_subscribe,
+            "server.ping":
+                self.server_ping,
+            "server.version":
+                self.server_version,
         }
 
     async def stop(self):
@@ -440,8 +455,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         if _ec and _ec != 0:
             return ERRORS["internalerror"]
 
-        task = asyncio.create_task(self.scripthash_notifier(
-            writer, scripthash))
+        task = asyncio.create_task(self.scripthash_notifier(writer, scripthash))
         self.sh_subscriptions[scripthash] = {"task": task}
 
         if len(history) < 1:

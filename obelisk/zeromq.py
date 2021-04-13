@@ -89,6 +89,7 @@ def unpack_table(row_fmt, data):
 
 class ClientSettings:
     """Class implementing ZMQ client settings"""
+
     def __init__(self, timeout=10, context=None, loop=None):
         self._timeout = timeout
         self._context = context
@@ -121,6 +122,7 @@ class Request:
     """Class implementing a _send_ request.
     This is either a simple request/response affair or a subscription.
     """
+
     def __init__(self, socket, command, data):
         self.id_ = create_random_id()
         self.socket = socket
@@ -150,6 +152,7 @@ class InvalidServerResponseException(Exception):
 
 class Response:
     """Class implementing a request response"""
+
     def __init__(self, frame):
         if len(frame) != 3:
             raise InvalidServerResponseException(
@@ -175,6 +178,7 @@ class RequestCollection:
     """RequestCollection carries a list of Requests and matches incoming
     responses to them.
     """
+
     def __init__(self, socket, loop):
         self._socket = socket
         self._requests = {}
@@ -229,6 +233,7 @@ class RequestCollection:
 
 class Client:
     """This class represents a connection to a libbitcoin server."""
+
     def __init__(self, log, endpoints, loop):
         self.log = log
         self._endpoints = endpoints
@@ -268,8 +273,7 @@ class Client:
         return error_code, request.queue
 
     async def _simple_request(self, command, data):
-        return await self._wait_for_response(await
-                                             self._request(command, data))
+        return await self._wait_for_response(await self._request(command, data))
 
     async def _request(self, command, data):
         """Make a generic request. Both options are byte objects specified
@@ -318,9 +322,8 @@ class Client:
     async def fetch_blockchain_transaction(self, txid):
         """Fetch transaction by txid (not including mempool)"""
         command = b"blockchain.fetch_transaction2"
-        error_code, data = await self._simple_request(
-            command,
-            bytes.fromhex(txid)[::-1])
+        error_code, data = await self._simple_request(command,
+                                                      bytes.fromhex(txid)[::-1])
         if error_code:
             return error_code, None
         return error_code, data
@@ -328,9 +331,8 @@ class Client:
     async def fetch_mempool_transaction(self, txid):
         """Fetch transaction by txid (including mempool)"""
         command = b"transaction_pool.fetch_transaction2"
-        error_code, data = await self._simple_request(
-            command,
-            bytes.fromhex(txid)[::-1])
+        error_code, data = await self._simple_request(command,
+                                                      bytes.fromhex(txid)[::-1])
         if error_code:
             return error_code, None
         return error_code, data

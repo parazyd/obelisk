@@ -153,8 +153,9 @@ async def test_blockchain_scripthash_listunspent(protocol, writer):
 async def test_blockchain_transaction_get(protocol, writer):
     expect = "020000000001011caa5f4ba91ff0ab77712851c1b17943e68f28d46bb0d96cbc13cdbef53c2b87000000001716001412e6e94028ab399b67c1232383d12f1dd3fc03b5feffffff02a40111000000000017a914ff1d7f4c85c562764ca16daa11e97d10eda52ebf87a0860100000000001976a9144a0360eac874a569e82ca6b17274d90bccbcab5e88ac0247304402205392417f5ffba2c0f3a501476fb6872368b2065c53bf18b2a201691fb88cdbe5022016c68ec9e094ba2b06d4bdc6af996ac74b580ab9728c622bb5304aaff04cb6980121031092742ffdf5901ceafcccec090c58170ce1d0ec26963ef7c7a2738a415a317e0b121e00"
     params = {
-        "params":
-        ["a9c3c22cc2589284288b28e802ea81723d649210d59dfa7e03af00475f4cec20"]
+        "params": [
+            "a9c3c22cc2589284288b28e802ea81723d649210d59dfa7e03af00475f4cec20"
+        ]
     }
     data = await protocol.blockchain_transaction_get(writer, params)
     assert data["result"] == expect
@@ -178,6 +179,7 @@ async def test_server_ping(protocol, writer):
 
 class MockWriter(asyncio.StreamWriter):
     """Mock class for StreamWriter"""
+
     def __init__(self):
         self.mock = None
 
@@ -196,32 +198,38 @@ async def main():
     protocol = ElectrumProtocol(log, "testnet", ENDPOINTS, {})
     writer = MockWriter()
     functions = {
-        "blockchain_block_header": test_blockchain_block_header,
-        "blockchain_block_hedaers": test_blockchain_block_headers,
-        "blockchain_estimatefee": test_blockchain_estimatefee,
+        "blockchain_block_header":
+            test_blockchain_block_header,
+        "blockchain_block_hedaers":
+            test_blockchain_block_headers,
+        "blockchain_estimatefee":
+            test_blockchain_estimatefee,
         # "blockchain_headers_subscribe": test_blockchain_headers_subscribe,
-        "blockchain_relayfee": test_blockchain_relayfee,
+        "blockchain_relayfee":
+            test_blockchain_relayfee,
         "blockchain_scripthash_get_balance":
-        test_blockchain_scripthash_get_balance,
+            test_blockchain_scripthash_get_balance,
         "blockchain_scripthash_get_history":
-        test_blockchain_scripthash_get_history,
+            test_blockchain_scripthash_get_history,
         # "blockchain_scripthash_get_mempool": test_blockchain_scripthash_get_mempool,
         "blockchain_scripthash_listunspent":
-        test_blockchain_scripthash_listunspent,
+            test_blockchain_scripthash_listunspent,
         # "blockchain_scripthash_subscribe": test_blockchain_scripthash_subscribe,
         # "blockchain_scripthash_unsubscribe": test_blockchain_scripthash_unsubscribe,
         # "blockchain_transaction_broadcast": test_blockchain_transaction_broadcast,
-        "blockchain_transaction_get": test_blockchain_transaction_get,
+        "blockchain_transaction_get":
+            test_blockchain_transaction_get,
         # "blockchain_transaction_get_merkle": test_blockchain_transaction_get_merkle,
         "blockchain_transaction_from_pos":
-        test_blockchain_transaction_from_pos,
+            test_blockchain_transaction_from_pos,
         # "mempool_get_fee_histogram": test_mempool_get_fee_histogram,
         # "server_add_peer": test_server_add_peer,
         # "server_banner": test_server_banner,
         # "server_donation_address": test_server_donation_address,
         # "server_features": test_server_features,
         # "server_peers_subscribe": test_server_peers_subscribe,
-        "server_ping": test_server_ping,
+        "server_ping":
+            test_server_ping,
         # "server_version": test_server_version,
     }
 
