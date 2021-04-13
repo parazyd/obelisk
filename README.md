@@ -7,7 +7,8 @@ A **work-in-progress** implementation of an
 [Electrum](https://electrum.org) server using
 [libbitcoin](https://libbitcoin.info) as a backend.
 
-![Tests](https://github.com/parazyd/obelisk/actions/workflows/py.yaml/badge.svg)
+[![Tests](https://github.com/parazyd/obelisk/actions/workflows/py.yaml/badge.svg)](https://github.com/parazyd/obelisk/actions/workflows/py.yaml)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](LICENSE)
 
 Please consider donating to support development:
 
@@ -38,9 +39,3 @@ Obelisk can also be installed with setuptools:
 ```
 python3 setup.py install
 ```
-
-
-License
--------
-
-obelisk is licensed [AGPL-3](LICENSE.md).
