@@ -517,8 +517,9 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         if not is_hex_str(hextx):
             return ERRORS["invalidparams"]
 
-        _ec, _ = await self.bx.broadcast_transaction(hextx)
+        _ec, _ = await self.bx.broadcast_transaction(unhexlify(hextx)[::-1])
         if _ec and _ec != 0:
+            self.log.debug("Got error: %s", repr(_ec))
             return ERRORS["internalerror"]
 
         rawtx = unhexlify(hextx)
