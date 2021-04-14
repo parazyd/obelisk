@@ -177,21 +177,21 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         """Send JSON-RPC notification to given writer"""
         response = {"jsonrpc": "2.0", "method": method, "params": params}
         self.log.debug("<= %s", response)
-        writer.write(json.dumps(response).encode("utf-8").append("\n"))
+        writer.write(json.dumps(response).encode("utf-8") + b"\n")
         await writer.drain()
 
     async def _send_response(self, writer, result, nid):
         """Send successful JSON-RPC response to given writer"""
         response = {"jsonrpc": "2.0", "result": result, "id": nid}
         self.log.debug("<= %s", response)
-        writer.write(json.dumps(response).encode("utf-8").append("\n"))
+        writer.write(json.dumps(response).encode("utf-8") + b"\n")
         await writer.drain()
 
     async def _send_error(self, writer, error, nid):
         """Send JSON-RPC error to given writer"""
         response = {"jsonrpc": "2.0", "error": error, "id": nid}
         self.log.debug("<= %s", response)
-        writer.write(json.dumps(response).encode("utf-8").append("\n"))
+        writer.write(json.dumps(response).encode("utf-8") + b"\n")
         await writer.drain()
 
     async def _send_reply(self, writer, resp, query):
