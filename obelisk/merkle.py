@@ -17,7 +17,7 @@
 """Module for calculating merkle branches"""
 from math import ceil, log
 
-from obelisk.util import double_sha256
+from obelisk.util import double_sha256, hash_to_hex_str
 
 
 def branch_length(hash_count):
@@ -64,5 +64,4 @@ def merkle_branch_and_root(hashes, index, length=None):
 def merkle_branch(tx_hashes, tx_pos):
     """Return a merkle branch given hashes and the tx position"""
     branch, _ = merkle_branch_and_root(tx_hashes, tx_pos)
-    branch = [bytes(reversed(h)).hex() for h in branch]
-    return branch
+    return [hash_to_hex_str(h) for h in branch]
