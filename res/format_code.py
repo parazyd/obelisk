@@ -5,5 +5,5 @@
 # yapf  - https://github.com/google/yapf
 from subprocess import run
 
-run(["black", "-l", "80", "."])
-run(["yapf", "--style", "google", "-i", "-r", "."])
+run(["black", "-l", "80", "."], check=True)
+run(["yapf", "--style", "google", "-i", "-r", "."], check=True)

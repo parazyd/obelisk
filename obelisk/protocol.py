@@ -108,7 +108,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
             "blockchain.transaction.get_merkle":
                 self.blockchain_transaction_get_merkle,
             "blockchain.transaction.id_from_pos":
-                self.blockchain_transaction_from_pos,
+                self.blockchain_transaction_id_from_pos,
             "mempool.get_fee_histogram":
                 self.mempool_get_fee_histogram,
             "server_add_peer":
@@ -451,6 +451,9 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
                 "tx_hash": hash_to_hex_str(rec["hash"]),
                 "height": rec["height"],
             })
+
+        if len(ret) >= 2:
+            ret.reverse()
         return {"result": ret}
 
     async def scripthash_notifier(self, writer, scripthash):
@@ -610,7 +613,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         }
         return {"result": res}
 
-    async def blockchain_transaction_from_pos(self, writer, query):  # pylint: disable=R0911,W0613
+    async def blockchain_transaction_id_from_pos(self, writer, query):  # pylint: disable=R0911,W0613
         """Method: blockchain.transaction.id_from_pos
         Return a transaction hash and optionally a merkle proof, given a
         block height and a position in the block.

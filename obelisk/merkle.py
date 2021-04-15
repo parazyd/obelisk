@@ -22,10 +22,14 @@ from obelisk.util import double_sha256
 
 def branch_length(hash_count):
     """Return the length of a merkle branch given the number of hashes"""
+    if not isinstance(hash_count, int):
+        raise TypeError("hash_count must be an integer")
+    if hash_count < 1:
+        raise ValueError("hash_count must be at least 1")
     return ceil(log(hash_count, 2))
 
 
-def merkle_branch_and_root(hashes, index):
+def merkle_branch_and_root(hashes, index, length=None):
     """Return a (merkle branch, merkle_root) pair given hashes, and the
     index of one of those hashes.
     """
@@ -35,7 +39,14 @@ def merkle_branch_and_root(hashes, index):
     # This also asserts hashes is not empty
     if not 0 <= index < len(hashes):
         raise ValueError("index out of range")
-    length = branch_length(len(hashes))
+    natural_length = branch_length(len(hashes))
+    if length is None:
+        length = natural_length
+    else:
+        if not isinstance(length, int):
+            raise TypeError("length must be an integer")
+        if length < natural_length:
+            raise ValueError("length out of range")
 
     branch = []
     for _ in range(length):
@@ -52,6 +63,6 @@ def merkle_branch_and_root(hashes, index):
 
 def merkle_branch(tx_hashes, tx_pos):
     """Return a merkle branch given hashes and the tx position"""
-    branch, _root = merkle_branch_and_root(tx_hashes, tx_pos)
+    branch, _ = merkle_branch_and_root(tx_hashes, tx_pos)
     branch = [bytes(reversed(h)).hex() for h in branch]
     return branch
