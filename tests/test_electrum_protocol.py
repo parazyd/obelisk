@@ -79,10 +79,10 @@ async def test_blockchain_block_header(protocol, writer):
     # params = [123, 130]
     # expect = get_expect(method, params)
     # data = await protocol.blockchain_block_header(writer, {"params": params})
-
-    # assert data["result"]["header"] == expect["result"]["header"]
-    # assert data["result"]["branch"] == expect["result"]["branch"]
-    # assert data["result"]["root"] == expect["result"]["root"]
+    # pprint(expect)
+    # print()
+    # pprint(data)
+    # assert data["result"] == expect["result"]
 
 
 async def test_blockchain_block_headers(protocol, writer):
@@ -95,9 +95,10 @@ async def test_blockchain_block_headers(protocol, writer):
     # params = [123, 3, 127]
     # expect = get_expect(method, params)
     # data = await protocol.blockchain_block_headers(writer, {"params": params})
-    # assert data["result"]["branch"] == expect["result"]["branch"]
-    # assert data["result"]["root"] == expect["result"]["root"]
-    # assert data["result"]["hex"] == expect["result"]["hex"]
+    # pprint(expect)
+    # print()
+    # pprint(data)
+    # assert data["result"] == expect["result"]
 
 
 async def test_blockchain_scripthash_get_balance(protocol, writer):

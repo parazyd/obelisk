@@ -241,23 +241,22 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
                 return JsonRPCError.internalerror()
             return {"result": safe_hexlify(header)}
 
+        # TODO: Help needed
         cp_headers = []
-        # headers up to and including cp_height
-        for i in range(index, cp_height + 1):
+        for i in range(index - 1, cp_height):
             _ec, data = await self.bx.fetch_block_header(i)
             if _ec and _ec != 0:
                 self.log.debug("Got error: %s", repr(_ec))
                 return JsonRPCError.internalerror()
             cp_headers.append(data)
 
-        # TODO: Review
-        # TODO: Is index is 0 or last elem?
-        branch, root = merkle_branch_and_root(cp_headers, 0)
+        hashed = [double_sha256(i) for i in cp_headers]
+        branch, root = merkle_branch_and_root(hashed, 1, length=len(cp_headers))
         return {
             "result": {
-                "branch": [safe_hexlify(i) for i in branch],
-                "header": safe_hexlify(cp_headers[0]),
-                "root": safe_hexlify(root),
+                "branch": [hash_to_hex_str(i) for i in branch],
+                "header": safe_hexlify(cp_headers[1]),
+                "root": hash_to_hex_str(root),
             }
         }
 
@@ -297,7 +296,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         }
 
         # The assumption is to fetch more headers if necessary.
-        # TODO: Review
+        # TODO: Review, help needed
         if cp_height > 0 and cp_height - start_height > count:
             for i in range(cp_height - start_height):
                 _ec, data = await self.bx.fetch_block_header(start_height +
