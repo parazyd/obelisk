@@ -76,13 +76,10 @@ async def test_blockchain_block_header(protocol, writer):
     data = await protocol.blockchain_block_header(writer, {"params": params})
     assert data["result"] == expect["result"]
 
-    # params = [123, 130]
-    # expect = get_expect(method, params)
-    # data = await protocol.blockchain_block_header(writer, {"params": params})
-    # pprint(expect)
-    # print()
-    # pprint(data)
-    # assert data["result"] == expect["result"]
+    params = [13, 25]
+    expect = get_expect(method, params)
+    data = await protocol.blockchain_block_header(writer, {"params": params})
+    assert data["result"] == expect["result"]
 
 
 async def test_blockchain_block_headers(protocol, writer):

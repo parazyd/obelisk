@@ -241,10 +241,11 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
                 return JsonRPCError.internalerror()
             return {"result": safe_hexlify(header)}
 
-        # TODO: Help needed
-        return JsonRPCError.invalidrequest()
+        # The following works, but is extremely inefficient.
+        # The best solution would be to figure something out in
+        # libbitcoin-server
         cp_headers = []
-        for i in range(index - 1, cp_height):
+        for i in range(0, cp_height + 1):
             _ec, data = await self.bx.fetch_block_header(i)
             if _ec and _ec != 0:
                 self.log.debug("Got error: %s", repr(_ec))
@@ -252,11 +253,11 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
             cp_headers.append(data)
 
         hashed = [double_sha256(i) for i in cp_headers]
-        branch, root = merkle_branch_and_root(hashed, 1, length=len(cp_headers))
+        branch, root = merkle_branch_and_root(hashed, index)
         return {
             "result": {
                 "branch": [hash_to_hex_str(i) for i in branch],
-                "header": safe_hexlify(cp_headers[1]),
+                "header": safe_hexlify(cp_headers[index]),
                 "root": hash_to_hex_str(root),
             }
         }
