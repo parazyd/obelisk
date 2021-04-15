@@ -58,7 +58,7 @@ async def run_electrum_server(config, chain):
     endpoints["trans"] = config.get("obelisk", "trans")
 
     server_cfg = {}
-    server_cfg["server_hostname"] = "localhost"  # TODO: <- should be public?
+    server_cfg["server_hostname"] = config.get("obelisk", "hostname")
     server_cfg["server_port"] = port
 
     global PROTOCOL
