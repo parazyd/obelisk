@@ -381,7 +381,8 @@ class Client:
         correlated_points = Client.__correlate(points)
         # self.log.debug("history points: %s", points)
         # self.log.debug("history correlated: %s", correlated_points)
-        return error_code, self._sort_correlated_points(correlated_points)
+        # return error_code, self._sort_correlated_points(correlated_points)
+        return error_code, correlated_points
 
     @staticmethod
     def _sort_correlated_points(points):

@@ -452,9 +452,11 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
                 "height": rec["height"],
             })
 
-        if len(ret) >= 2:
-            ret.reverse()
-        return {"result": ret}
+        if len(ret) < 2:
+            return {"result": ret}
+
+        # return {"result": sorted(ret, key=lambda x: x["height"], reverse=True)}
+        return {"result": sorted(ret, key=lambda x: x["height"])}
 
     async def scripthash_notifier(self, writer, scripthash):
         # TODO: Figure out how this actually works

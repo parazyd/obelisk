@@ -90,7 +90,7 @@ async def test_blockchain_block_headers(protocol, writer):
     params = [123, 3]
     expect = get_expect(method, params)
     data = await protocol.blockchain_block_headers(writer, {"params": params})
-    assert data["result"]["hex"] == expect["result"]["hex"]
+    assert data["result"] == expect["result"]
 
     # params = [123, 3, 127]
     # expect = get_expect(method, params)
@@ -108,8 +108,7 @@ async def test_blockchain_scripthash_get_balance(protocol, writer):
     expect = get_expect(method, params)
     data = await protocol.blockchain_scripthash_get_balance(
         writer, {"params": params})
-    assert data["result"]["unconfirmed"] == expect["result"]["unconfirmed"]
-    assert data["result"]["confirmed"] == expect["result"]["confirmed"]
+    assert data["result"] == expect["result"]
 
     params = [
         "92dd1eb7c042956d3dd9185a58a2578f61fee91347196604540838ccd0f8c08c"
@@ -117,8 +116,7 @@ async def test_blockchain_scripthash_get_balance(protocol, writer):
     expect = get_expect(method, params)
     data = await protocol.blockchain_scripthash_get_balance(
         writer, {"params": params})
-    assert data["result"]["unconfirmed"] == expect["result"]["unconfirmed"]
-    assert data["result"]["confirmed"] == expect["result"]["confirmed"]
+    assert data["result"] == expect["result"]
 
 
 async def test_blockchain_scripthash_get_history(protocol, writer):
@@ -129,10 +127,7 @@ async def test_blockchain_scripthash_get_history(protocol, writer):
     expect = get_expect(method, params)
     data = await protocol.blockchain_scripthash_get_history(
         writer, {"params": params})
-    assert len(data["result"]) == len(expect["result"])
-    for i in range(len(expect["result"])):
-        assert data["result"][i]["tx_hash"] == expect["result"][i]["tx_hash"]
-        assert data["result"][i]["height"] == expect["result"][i]["height"]
+    assert data["result"] == expect["result"]
 
 
 async def test_blockchain_scripthash_listunspent(protocol, writer):
@@ -152,12 +147,11 @@ async def test_blockchain_scripthash_listunspent(protocol, writer):
     data = await protocol.blockchain_scripthash_listunspent(
         writer, {"params": params})
 
-    assert len(data["result"]) == len(expect["result"])
-    for i in range(len(expect["result"])):
-        assert data["result"][i]["value"] == expect["result"][i]["value"]
-        assert data["result"][i]["height"] == expect["result"][i]["height"]
-        assert data["result"][i]["tx_pos"] == expect["result"][i]["tx_pos"]
-        assert data["result"][i]["tx_hash"] == expect["result"][i]["tx_hash"]
+    pprint(expect)
+    print()
+    pprint(data)
+
+    assert data["result"] == expect["result"]
 
 
 async def test_blockchain_transaction_get(protocol, writer):
@@ -179,9 +173,7 @@ async def test_blockchain_transaction_get_merkle(protocol, writer):
     expect = get_expect(method, params)
     data = await protocol.blockchain_transaction_get_merkle(
         writer, {"params": params})
-    assert data["result"]["block_height"] == expect["result"]["block_height"]
-    assert data["result"]["merkle"] == expect["result"]["merkle"]
-    assert data["result"]["pos"] == expect["result"]["pos"]
+    assert data["result"] == expect["result"]
 
 
 async def test_blockchain_transaction_id_from_pos(protocol, writer):
@@ -196,8 +188,7 @@ async def test_blockchain_transaction_id_from_pos(protocol, writer):
     expect = get_expect(method, params)
     data = await protocol.blockchain_transaction_id_from_pos(
         writer, {"params": params})
-    assert data["result"]["tx_hash"] == expect["result"]["tx_hash"]
-    assert data["result"]["merkle"] == expect["result"]["merkle"]
+    assert data["result"] == expect["result"]
 
 
 async def test_server_ping(protocol, writer):
