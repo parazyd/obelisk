@@ -261,7 +261,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
             }
         }
 
-    async def blockchain_block_headers(self, writer, query):  # pylint: disable=W0613
+    async def blockchain_block_headers(self, writer, query):  # pylint: disable=W0613,R0911
         """Method: blockchain.block.headers
         Return a concatenated chunk of block headers from the main chain.
         """
@@ -310,7 +310,6 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
             # TODO: Review
             # TODO: Is index is 0 or last elem?
             hdr_lst = [headers[i:i + 80] for i in range(0, len(headers), 80)]
-            print(hdr_lst)
             branch, root = merkle_branch_and_root(hdr_lst, 0)
             resp["branch"] = [safe_hexlify(i) for i in branch]
             resp["root"] = safe_hexlify(root)

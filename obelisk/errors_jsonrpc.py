@@ -18,6 +18,7 @@
 
 
 class JsonRPCError:
+    """Class implementing functions returning JSON-RPC errors"""
 
     def __init__(self):
         return
