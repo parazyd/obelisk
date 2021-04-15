@@ -151,6 +151,28 @@ async def test_blockchain_scripthash_listunspent(protocol, writer):
     assert data["result"] == srt
 
 
+async def test_blockchain_scripthash_subscribe(protocol, writer):
+    method = "blockchain.scripthash.subscribe"
+    params = [
+        "92dd1eb7c042956d3dd9185a58a2578f61fee91347196604540838ccd0f8c08c"
+    ]
+    expect = get_expect(method, params)
+    data = await protocol.blockchain_scripthash_subscribe(
+        writer, {"params": params})
+    assert data["result"] == expect["result"]
+
+
+async def test_blockchain_scripthash_unsubscribe(protocol, writer):
+    # Here blockstream doesn't even care
+    method = "blockchain.scripthash.unsubscribe"
+    params = [
+        "92dd1eb7c042956d3dd9185a58a2578f61fee91347196604540838ccd0f8c08c"
+    ]
+    data = await protocol.blockchain_scripthash_unsubscribe(
+        writer, {"params": params})
+    assert data["result"] == True
+
+
 async def test_blockchain_transaction_get(protocol, writer):
     method = "blockchain.transaction.get"
     params = [
@@ -225,8 +247,10 @@ orchestration = {
     # "blockchain_scripthash_get_mempool": test_blockchain_scripthash_get_mempool,
     "blockchain_scripthash_listunspent":
         test_blockchain_scripthash_listunspent,
-    # "blockchain_scripthash_subscribe": test_blockchain_scripthash_subscribe,
-    # "blockchain_scripthash_unsubscribe": test_blockchain_scripthash_unsubscribe,
+    "blockchain_scripthash_subscribe":
+        test_blockchain_scripthash_subscribe,
+    "blockchain_scripthash_unsubscribe":
+        test_blockchain_scripthash_unsubscribe,
     # "blockchain_transaction_broadcast": test_blockchain_transaction_broadcast,
     "blockchain_transaction_get":
         test_blockchain_transaction_get,
