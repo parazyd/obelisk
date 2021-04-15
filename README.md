@@ -8,6 +8,7 @@ A **work-in-progress** implementation of an
 [libbitcoin](https://libbitcoin.info) as a backend.
 
 [![Tests](https://github.com/parazyd/obelisk/actions/workflows/py.yaml/badge.svg)](https://github.com/parazyd/obelisk/actions/workflows/py.yaml)
+[![CodeQL](https://github.com/parazyd/obelisk/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/parazyd/obelisk/actions/workflows/codeql-analysis.yml)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](LICENSE)
 
 Please consider donating to support development:
