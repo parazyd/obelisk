@@ -242,6 +242,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
             return {"result": safe_hexlify(header)}
 
         # TODO: Help needed
+        return JsonRPCError.invalidrequest()
         cp_headers = []
         for i in range(index - 1, cp_height):
             _ec, data = await self.bx.fetch_block_header(i)
@@ -294,9 +295,11 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
             "count": len(headers) // 80,
             "max": max_chunk_size,
         }
+        return {"result": resp}
 
         # The assumption is to fetch more headers if necessary.
         # TODO: Review, help needed
+        return JsonRPCError.invalidrequest()
         if cp_height > 0 and cp_height - start_height > count:
             for i in range(cp_height - start_height):
                 _ec, data = await self.bx.fetch_block_header(start_height +
@@ -314,7 +317,6 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
             resp["branch"] = [safe_hexlify(i) for i in branch]
             resp["root"] = safe_hexlify(root)
 
-        return {"result": resp}
 
     async def blockchain_estimatefee(self, writer, query):  # pylint: disable=W0613
         """Method: blockchain.estimatefee
