@@ -22,7 +22,7 @@ TODO
 
 * Better (and more) error handling
 * More testing
-* git grep -E "TODO:|BUG:"
+* git grep -nE "TODO:|BUG:"
 
 
 Dependencies
