@@ -143,15 +143,12 @@ async def test_blockchain_scripthash_listunspent(protocol, writer):
     params = [
         "92dd1eb7c042956d3dd9185a58a2578f61fee91347196604540838ccd0f8c08c"
     ]
+    # Blockstream is broken here and doesn't return in ascending order.
     expect = get_expect(method, params)
+    srt = sorted(expect["result"], key=lambda x: x["height"])
     data = await protocol.blockchain_scripthash_listunspent(
         writer, {"params": params})
-
-    pprint(expect)
-    print()
-    pprint(data)
-
-    assert data["result"] == expect["result"]
+    assert data["result"] == srt
 
 
 async def test_blockchain_transaction_get(protocol, writer):
