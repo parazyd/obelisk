@@ -96,6 +96,15 @@ async def test_blockchain_block_headers(protocol, writer):
     assert data["result"] == expect["result"]
 
 
+async def test_blockchain_headers_subscribe(protocol, writer):
+    method = "blockchain.headers.subscribe"
+    params = []
+    expect = get_expect(method, params)
+    data = await protocol.blockchain_headers_subscribe(writer,
+                                                       {"params": params})
+    assert data["result"] == expect["result"]
+
+
 async def test_blockchain_scripthash_get_balance(protocol, writer):
     method = "blockchain.scripthash.get_balance"
     params = [
@@ -233,7 +242,8 @@ orchestration = {
     "blockchain_block_headers":
         test_blockchain_block_headers,
     # "blockchain_estimatefee": test_blockchain_estimatefee,
-    # "blockchain_headers_subscribe": test_blockchain_headers_subscribe,
+    "blockchain_headers_subscribe":
+        test_blockchain_headers_subscribe,
     # "blockchain_relayfee": test_blockchain_relayfee,
     "blockchain_scripthash_get_balance":
         test_blockchain_scripthash_get_balance,
