@@ -298,7 +298,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         return {"result": resp}
 
         # The assumption is to fetch more headers if necessary.
-        # TODO: Review, help needed
+        # TODO: Review everything below, help needed
         return JsonRPCError.invalidrequest()
         if cp_height > 0 and cp_height - start_height > count:
             for i in range(cp_height - start_height):
@@ -310,13 +310,10 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
                 headers.extend(data)
 
         if cp_height > 0:
-            # TODO: Review
-            # TODO: Is index is 0 or last elem?
             hdr_lst = [headers[i:i + 80] for i in range(0, len(headers), 80)]
             branch, root = merkle_branch_and_root(hdr_lst, 0)
             resp["branch"] = [safe_hexlify(i) for i in branch]
             resp["root"] = safe_hexlify(root)
-
 
     async def blockchain_estimatefee(self, writer, query):  # pylint: disable=W0613
         """Method: blockchain.estimatefee
@@ -424,7 +421,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         Return the unconfirmed transactions of a script hash.
         """
         # TODO: Implement
-        return
+        return JsonRPCError.invalidrequest()
 
     async def blockchain_scripthash_listunspent(self, writer, query):  # pylint: disable=W0613
         """Method: blockchain.scripthash.listunspent
