@@ -69,17 +69,28 @@ def get_expect(method, params):
             return resp
 
 
+def assert_equal(data, expect):
+    try:
+        assert data == expect
+    except AssertionError:
+        print("Got:")
+        pprint(data)
+        print("Expected:")
+        pprint(expect)
+        raise
+
+
 async def test_blockchain_block_header(protocol, writer):
     method = "blockchain.block.header"
     params = [123]
     expect = get_expect(method, params)
     data = await protocol.blockchain_block_header(writer, {"params": params})
-    assert data["result"] == expect["result"]
+    assert_equal(data["result"], expect["result"])
 
     params = [1, 5]
     expect = get_expect(method, params)
     data = await protocol.blockchain_block_header(writer, {"params": params})
-    assert data["result"] == expect["result"]
+    assert_equal(data["result"], expect["result"])
 
 
 async def test_blockchain_block_headers(protocol, writer):
@@ -87,13 +98,12 @@ async def test_blockchain_block_headers(protocol, writer):
     params = [123, 3]
     expect = get_expect(method, params)
     data = await protocol.blockchain_block_headers(writer, {"params": params})
-    assert data["result"] == expect["result"]
+    assert_equal(data["result"], expect["result"])
 
-    # params = [1, 4, 11]
     params = [11, 3, 14]
     expect = get_expect(method, params)
     data = await protocol.blockchain_block_headers(writer, {"params": params})
-    assert data["result"] == expect["result"]
+    assert_equal(data["result"], expect["result"])
 
 
 async def test_blockchain_headers_subscribe(protocol, writer):
@@ -102,7 +112,7 @@ async def test_blockchain_headers_subscribe(protocol, writer):
     expect = get_expect(method, params)
     data = await protocol.blockchain_headers_subscribe(writer,
                                                        {"params": params})
-    assert data["result"] == expect["result"]
+    assert_equal(data["result"], expect["result"])
 
 
 async def test_blockchain_scripthash_get_balance(protocol, writer):
@@ -113,7 +123,7 @@ async def test_blockchain_scripthash_get_balance(protocol, writer):
     expect = get_expect(method, params)
     data = await protocol.blockchain_scripthash_get_balance(
         writer, {"params": params})
-    assert data["result"] == expect["result"]
+    assert_equal(data["result"], expect["result"])
 
     params = [
         "92dd1eb7c042956d3dd9185a58a2578f61fee91347196604540838ccd0f8c08c"
@@ -121,7 +131,7 @@ async def test_blockchain_scripthash_get_balance(protocol, writer):
     expect = get_expect(method, params)
     data = await protocol.blockchain_scripthash_get_balance(
         writer, {"params": params})
-    assert data["result"] == expect["result"]
+    assert_equal(data["result"], expect["result"])
 
 
 async def test_blockchain_scripthash_get_history(protocol, writer):
@@ -132,7 +142,7 @@ async def test_blockchain_scripthash_get_history(protocol, writer):
     expect = get_expect(method, params)
     data = await protocol.blockchain_scripthash_get_history(
         writer, {"params": params})
-    assert data["result"] == expect["result"]
+    assert_equal(data["result"], expect["result"])
 
 
 async def test_blockchain_scripthash_listunspent(protocol, writer):
@@ -143,7 +153,7 @@ async def test_blockchain_scripthash_listunspent(protocol, writer):
     expect = get_expect(method, params)
     data = await protocol.blockchain_scripthash_listunspent(
         writer, {"params": params})
-    assert data["result"] == expect["result"]
+    assert_equal(data["result"], expect["result"])
 
     params = [
         "92dd1eb7c042956d3dd9185a58a2578f61fee91347196604540838ccd0f8c08c"
@@ -153,7 +163,7 @@ async def test_blockchain_scripthash_listunspent(protocol, writer):
     srt = sorted(expect["result"], key=lambda x: x["height"])
     data = await protocol.blockchain_scripthash_listunspent(
         writer, {"params": params})
-    assert data["result"] == srt
+    assert_equal(data["result"], srt)
 
 
 async def test_blockchain_scripthash_subscribe(protocol, writer):
@@ -164,7 +174,7 @@ async def test_blockchain_scripthash_subscribe(protocol, writer):
     expect = get_expect(method, params)
     data = await protocol.blockchain_scripthash_subscribe(
         writer, {"params": params})
-    assert data["result"] == expect["result"]
+    assert_equal(data["result"], expect["result"])
 
 
 async def test_blockchain_scripthash_unsubscribe(protocol, writer):
@@ -184,7 +194,7 @@ async def test_blockchain_transaction_get(protocol, writer):
     ]
     expect = get_expect(method, params)
     data = await protocol.blockchain_transaction_get(writer, {"params": params})
-    assert data["result"] == expect["result"]
+    assert_equal(data["result"], expect["result"])
 
 
 async def test_blockchain_transaction_get_merkle(protocol, writer):
@@ -196,7 +206,7 @@ async def test_blockchain_transaction_get_merkle(protocol, writer):
     expect = get_expect(method, params)
     data = await protocol.blockchain_transaction_get_merkle(
         writer, {"params": params})
-    assert data["result"] == expect["result"]
+    assert_equal(data["result"], expect["result"])
 
 
 async def test_blockchain_transaction_id_from_pos(protocol, writer):
@@ -205,13 +215,13 @@ async def test_blockchain_transaction_id_from_pos(protocol, writer):
     expect = get_expect(method, params)
     data = await protocol.blockchain_transaction_id_from_pos(
         writer, {"params": params})
-    assert data["result"] == expect["result"]
+    assert_equal(data["result"], expect["result"])
 
     params = [1970700, 28, True]
     expect = get_expect(method, params)
     data = await protocol.blockchain_transaction_id_from_pos(
         writer, {"params": params})
-    assert data["result"] == expect["result"]
+    assert_equal(data["result"], expect["result"])
 
 
 async def test_server_ping(protocol, writer):
@@ -219,7 +229,7 @@ async def test_server_ping(protocol, writer):
     params = []
     expect = get_expect(method, params)
     data = await protocol.server_ping(writer, {"params": params})
-    assert data["result"] == expect["result"]
+    assert_equal(data["result"], expect["result"])
 
 
 class MockWriter(asyncio.StreamWriter):
