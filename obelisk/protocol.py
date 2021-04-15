@@ -307,6 +307,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
                     return JsonRPCError.internalerror()
                 headers.extend(data)
 
+        if cp_height > 0:
             # TODO: Review
             # TODO: Is index is 0 or last elem?
             hdr_lst = [headers[i:i + 80] for i in range(0, len(headers), 80)]
