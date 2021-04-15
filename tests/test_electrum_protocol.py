@@ -76,7 +76,7 @@ async def test_blockchain_block_header(protocol, writer):
     data = await protocol.blockchain_block_header(writer, {"params": params})
     assert data["result"] == expect["result"]
 
-    params = [13, 25]
+    params = [1, 5]
     expect = get_expect(method, params)
     data = await protocol.blockchain_block_header(writer, {"params": params})
     assert data["result"] == expect["result"]
@@ -89,13 +89,11 @@ async def test_blockchain_block_headers(protocol, writer):
     data = await protocol.blockchain_block_headers(writer, {"params": params})
     assert data["result"] == expect["result"]
 
-    # params = [123, 3, 127]
-    # expect = get_expect(method, params)
-    # data = await protocol.blockchain_block_headers(writer, {"params": params})
-    # pprint(expect)
-    # print()
-    # pprint(data)
-    # assert data["result"] == expect["result"]
+    # params = [1, 4, 11]
+    params = [11, 3, 14]
+    expect = get_expect(method, params)
+    data = await protocol.blockchain_block_headers(writer, {"params": params})
+    assert data["result"] == expect["result"]
 
 
 async def test_blockchain_scripthash_get_balance(protocol, writer):
@@ -162,13 +160,12 @@ async def test_blockchain_scripthash_subscribe(protocol, writer):
 
 async def test_blockchain_scripthash_unsubscribe(protocol, writer):
     # Here blockstream doesn't even care
-    method = "blockchain.scripthash.unsubscribe"
     params = [
         "92dd1eb7c042956d3dd9185a58a2578f61fee91347196604540838ccd0f8c08c"
     ]
     data = await protocol.blockchain_scripthash_unsubscribe(
         writer, {"params": params})
-    assert data["result"] == True
+    assert data["result"] is True
 
 
 async def test_blockchain_transaction_get(protocol, writer):

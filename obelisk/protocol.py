@@ -218,6 +218,29 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         resp = await func(writer, query)
         return await self._send_reply(writer, resp, query)
 
+    async def _merkle_proof_for_headers(self, height, idx):
+        """Extremely inefficient merkle proof for headers"""
+        # The following works, but is extremely inefficient.
+        # The best solution would be to figure something out in
+        # libbitcoin-server
+        cp_headers = []
+
+        for i in range(0, height + 1):
+            _ec, data = await self.bx.fetch_block_header(i)
+            if _ec and _ec != 0:
+                self.log.debug("Got error: %s", repr(_ec))
+                return JsonRPCError.internalerror()
+            cp_headers.append(data)
+
+        branch, root = merkle_branch_and_root(
+            [double_sha256(i) for i in cp_headers], idx)
+
+        return {
+            "branch": [hash_to_hex_str(i) for i in branch],
+            "header": safe_hexlify(cp_headers[idx]),
+            "root": hash_to_hex_str(root),
+        }
+
     async def blockchain_block_header(self, writer, query):  # pylint: disable=W0613,R0911
         """Method: blockchain.block.header
         Return the block header at the given height.
@@ -241,26 +264,8 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
                 return JsonRPCError.internalerror()
             return {"result": safe_hexlify(header)}
 
-        # The following works, but is extremely inefficient.
-        # The best solution would be to figure something out in
-        # libbitcoin-server
-        cp_headers = []
-        for i in range(0, cp_height + 1):
-            _ec, data = await self.bx.fetch_block_header(i)
-            if _ec and _ec != 0:
-                self.log.debug("Got error: %s", repr(_ec))
-                return JsonRPCError.internalerror()
-            cp_headers.append(data)
-
-        hashed = [double_sha256(i) for i in cp_headers]
-        branch, root = merkle_branch_and_root(hashed, index)
-        return {
-            "result": {
-                "branch": [hash_to_hex_str(i) for i in branch],
-                "header": safe_hexlify(cp_headers[index]),
-                "root": hash_to_hex_str(root),
-            }
-        }
+        res = await self._merkle_proof_for_headers(cp_height, index)
+        return {"result": res}
 
     async def blockchain_block_headers(self, writer, query):  # pylint: disable=W0613,R0911
         """Method: blockchain.block.headers
@@ -279,7 +284,8 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
             return JsonRPCError.invalidparams()
         if not is_non_negative_integer(count):
             return JsonRPCError.invalidparams()
-        if cp_height != 0 and not start_height + (count - 1) <= cp_height:
+        # BUG: spec says <= cp_height
+        if cp_height != 0 and not start_height + (count - 1) < cp_height:
             return JsonRPCError.invalidparams()
 
         count = min(count, max_chunk_size)
@@ -296,25 +302,14 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
             "count": len(headers) // 80,
             "max": max_chunk_size,
         }
-        return {"result": resp}
-
-        # The assumption is to fetch more headers if necessary.
-        # TODO: Review everything below, help needed
-        return JsonRPCError.invalidrequest()
-        if cp_height > 0 and cp_height - start_height > count:
-            for i in range(cp_height - start_height):
-                _ec, data = await self.bx.fetch_block_header(start_height +
-                                                             count + i)
-                if _ec and _ec != 0:
-                    self.log.debug("Got error: %s", repr(_ec))
-                    return JsonRPCError.internalerror()
-                headers.extend(data)
 
         if cp_height > 0:
-            hdr_lst = [headers[i:i + 80] for i in range(0, len(headers), 80)]
-            branch, root = merkle_branch_and_root(hdr_lst, 0)
-            resp["branch"] = [safe_hexlify(i) for i in branch]
-            resp["root"] = safe_hexlify(root)
+            data = await self._merkle_proof_for_headers(
+                cp_height, start_height + (len(headers) // 80) - 1)
+            resp["branch"] = data["branch"]
+            resp["root"] = data["root"]
+
+        return {"result": resp}
 
     async def blockchain_estimatefee(self, writer, query):  # pylint: disable=W0613
         """Method: blockchain.estimatefee
