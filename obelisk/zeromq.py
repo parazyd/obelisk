@@ -24,7 +24,8 @@ from random import randint
 import zmq
 import zmq.asyncio
 
-from obelisk.libbitcoin_errors import make_error_code, ErrorCode
+from obelisk.errors_libbitcoin import make_error_code, ErrorCode
+from obelisk.util import hash_to_hex_str
 
 
 def create_random_id():
@@ -372,7 +373,7 @@ class Client:
                 },
                 height,
                 value,
-                checksum(tx_hash[::-1].hex(), index),
+                checksum(hash_to_hex_str(tx_hash), index),
             )
 
         rows = unpack_table("<BI32sIQ", raw_points)
