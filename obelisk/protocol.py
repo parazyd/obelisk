@@ -164,9 +164,9 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         writer.write(json.dumps(response).encode("utf-8") + b"\n")
         await writer.drain()
 
-    async def _send_error(self, writer, error, nid):
+    async def _send_error(self, writer, error):
         """Send JSON-RPC error to given writer"""
-        response = {"jsonrpc": "2.0", "error": error, "id": nid}
+        response = {"jsonrpc": "2.0", "error": error, "id": None}
         self.log.debug("<= %s", response)
         writer.write(json.dumps(response).encode("utf-8") + b"\n")
         await writer.drain()
@@ -174,17 +174,19 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
     async def _send_reply(self, writer, resp, query):
         """Wrap function for sending replies"""
         if "error" in resp:
-            return await self._send_error(writer, resp["error"], query["id"])
+            return await self._send_error(writer, resp["error"])
         return await self._send_response(writer, resp["result"], query["id"])
 
     async def handle_query(self, writer, query):  # pylint: disable=R0915,R0912,R0911
         """Electrum protocol method handler mapper"""
         if "method" not in query:
             self.log.debug("No 'method' in query: %s", query)
-            return
+            return await self._send_reply(writer, JsonRPCError.invalidrequest(),
+                                          None)
         if "id" not in query:
             self.log.debug("No 'id' in query: %s", query)
-            return
+            return await self._send_reply(writer, JsonRPCError.invalidrequest(),
+                                          None)
 
         method = query["method"]
         func = self.methodmap.get(method)
