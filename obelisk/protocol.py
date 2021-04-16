@@ -75,7 +75,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         elif chain == "testnet":
             self.genesis = "000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943"
         else:
-            raise ValueError(f"Invalid chain '{chain}'")
+            raise ValueError(f"Invalid chain '{chain}'")  # pragma: no cover
 
         # Here we map available methods to their respective functions
         self.methodmap = {
@@ -648,7 +648,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         """
         return {"result": DONATION_ADDR}
 
-    async def server_features(self, writer, query):  # pylint: disable=W0613
+    async def server_features(self, writer, query):  # pylint: disable=W0613 # pragma: no cover
         """Method: server.features
         Return a list of features and services supported by the server.
         """

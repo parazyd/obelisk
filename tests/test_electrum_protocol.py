@@ -85,6 +85,20 @@ def assert_equal(data, expect):  # pragma: no cover
         raise
 
 
+async def test_server_version(protocol, writer, method):
+    params = ["obelisk 42", [SERVER_PROTO_MIN, SERVER_PROTO_MAX]]
+    expect = {"result": [f"obelisk {VERSION}", SERVER_PROTO_MAX]}
+    data = await protocol.server_version(writer, {"params": params})
+    assert_equal(data["result"], expect["result"])
+
+
+async def test_ping(protocol, writer, method):
+    params = []
+    expect = get_expect(method, params)
+    data = await protocol.ping(writer, {"params": params})
+    assert_equal(data["result"], expect["result"])
+
+
 async def test_block_header(protocol, writer, method):
     params = [[123], [1, 5]]
     for i in params:
@@ -101,12 +115,25 @@ async def test_block_headers(protocol, writer, method):
         assert_equal(data["result"], expect["result"])
 
 
+async def test_estimatefee(protocol, writer, method):
+    params = [2]
+    expect = -1
+    data = await protocol.estimatefee(writer, {"params": params})
+    assert_equal(data["result"], expect)
+
+
 async def test_headers_subscribe(protocol, writer, method):
     params = [[]]
     for i in params:
         expect = get_expect(method, i)
         data = await protocol.headers_subscribe(writer, {"params": i})
         assert_equal(data["result"], expect["result"])
+
+
+async def test_relayfee(protocol, writer, method):
+    expect = 0.00001
+    data = await protocol.relayfee(writer, {"params": []})
+    assert_equal(data["result"], expect)
 
 
 async def test_scripthash_get_balance(protocol, writer, method):
@@ -194,18 +221,29 @@ async def test_transaction_id_from_pos(protocol, writer, method):
         assert_equal(data["result"], expect["result"])
 
 
-async def test_ping(protocol, writer, method):
-    params = []
-    expect = get_expect(method, params)
-    data = await protocol.ping(writer, {"params": params})
-    assert_equal(data["result"], expect["result"])
+async def test_get_fee_histogram(protocol, writer, method):
+    data = await protocol.get_fee_histogram(writer, {"params": []})
+    assert_equal(data["result"], [[0, 0]])
 
 
-async def test_server_version(protocol, writer, method):
-    params = ["obelisk 42", [SERVER_PROTO_MIN, SERVER_PROTO_MAX]]
-    expect = {"result": [f"obelisk {VERSION}", SERVER_PROTO_MAX]}
-    data = await protocol.server_version(writer, {"params": params})
-    assert_equal(data["result"], expect["result"])
+async def test_add_peer(protocol, writer, method):
+    data = await protocol.add_peer(writer, {"params": []})
+    assert_equal(data["result"], False)
+
+
+async def test_banner(protocol, writer, method):
+    data = await protocol.banner(writer, {"params": []})
+    assert_equal(type(data["result"]), str)
+
+
+async def test_donation_address(protocol, writer, method):
+    data = await protocol.donation_address(writer, {"params": []})
+    assert_equal(type(data["result"]), str)
+
+
+async def test_peers_subscribe(protocol, writer, method):
+    data = await protocol.peers_subscribe(writer, {"params": []})
+    assert_equal(data["result"], [])
 
 
 class MockWriter(asyncio.StreamWriter):  # pragma: no cover
@@ -227,9 +265,9 @@ orchestration = {
     "server.ping": test_ping,
     "blockchain.block.header": test_block_header,
     "blockchain.block.headers": test_block_headers,
-    # "blockchain.estimatefee": test_estimatefee,
+    "blockchain.estimatefee": test_estimatefee,
     "blockchain.headers.subscribe": test_headers_subscribe,
-    # "blockchain.relayfee": test_relayfee,
+    "blockchain.relayfee": test_relayfee,
     "blockchain.scripthash.get_balance": test_scripthash_get_balance,
     "blockchain.scripthash.get_history": test_scripthash_get_history,
     # "blockchain.scripthash.get_mempool": test_scripthash_get_mempool,
@@ -240,11 +278,12 @@ orchestration = {
     "blockchain.transaction.get": test_transaction_get,
     "blockchain.transaction.get_merkle": test_transaction_get_merkle,
     "blockchain.transaction.id_from_pos": test_transaction_id_from_pos,
-    # "mempool.get_fee_histogram": test_get_fee_histogram,
-    # "server.add_peer": test_add_peer,
-    # "server.donation_address": test_donation_address,
+    "mempool.get_fee_histogram": test_get_fee_histogram,
+    "server.add_peer": test_add_peer,
+    "server.banner": test_banner,
+    "server.donation_address": test_donation_address,
     # "server.features": test_server_features,
-    # "server.peers_subscribe": test_peers_subscribe,
+    "server.peers_subscribe": test_peers_subscribe,
 }
 
 
