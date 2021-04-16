@@ -81,126 +81,112 @@ def assert_equal(data, expect):
 
 
 async def test_block_header(protocol, writer, method):
-    params = [123]
-    expect = get_expect(method, params)
-    data = await protocol.block_header(writer, {"params": params})
-    assert_equal(data["result"], expect["result"])
-
-    params = [1, 5]
-    expect = get_expect(method, params)
-    data = await protocol.block_header(writer, {"params": params})
-    assert_equal(data["result"], expect["result"])
+    params = [[123], [1, 5]]
+    for i in params:
+        expect = get_expect(method, i)
+        data = await protocol.block_header(writer, {"params": i})
+        assert_equal(data["result"], expect["result"])
 
 
 async def test_block_headers(protocol, writer, method):
-    params = [123, 3]
-    expect = get_expect(method, params)
-    data = await protocol.block_headers(writer, {"params": params})
-    assert_equal(data["result"], expect["result"])
-
-    params = [11, 3, 14]
-    expect = get_expect(method, params)
-    data = await protocol.block_headers(writer, {"params": params})
-    assert_equal(data["result"], expect["result"])
+    params = [[123, 3], [11, 3, 14]]
+    for i in params:
+        expect = get_expect(method, i)
+        data = await protocol.block_headers(writer, {"params": i})
+        assert_equal(data["result"], expect["result"])
 
 
 async def test_headers_subscribe(protocol, writer, method):
-    params = []
-    expect = get_expect(method, params)
-    data = await protocol.headers_subscribe(writer, {"params": params})
-    assert_equal(data["result"], expect["result"])
+    params = [[]]
+    for i in params:
+        expect = get_expect(method, i)
+        data = await protocol.headers_subscribe(writer, {"params": i})
+        assert_equal(data["result"], expect["result"])
 
 
 async def test_scripthash_get_balance(protocol, writer, method):
     params = [
-        "c036b0ff3ad79662cd517cd5fe1fa0af07377b9262d16f276f11ced69aaa6921"
+        ["c036b0ff3ad79662cd517cd5fe1fa0af07377b9262d16f276f11ced69aaa6921"],
+        ["92dd1eb7c042956d3dd9185a58a2578f61fee91347196604540838ccd0f8c08c"],
     ]
-    expect = get_expect(method, params)
-    data = await protocol.scripthash_get_balance(writer, {"params": params})
-    assert_equal(data["result"], expect["result"])
-
-    params = [
-        "92dd1eb7c042956d3dd9185a58a2578f61fee91347196604540838ccd0f8c08c"
-    ]
-    expect = get_expect(method, params)
-    data = await protocol.scripthash_get_balance(writer, {"params": params})
-    assert_equal(data["result"], expect["result"])
+    for i in params:
+        expect = get_expect(method, i)
+        data = await protocol.scripthash_get_balance(writer, {"params": i})
+        assert_equal(data["result"], expect["result"])
 
 
 async def test_scripthash_get_history(protocol, writer, method):
     params = [
-        "c036b0ff3ad79662cd517cd5fe1fa0af07377b9262d16f276f11ced69aaa6921"
+        ["c036b0ff3ad79662cd517cd5fe1fa0af07377b9262d16f276f11ced69aaa6921"],
     ]
-    expect = get_expect(method, params)
-    data = await protocol.scripthash_get_history(writer, {"params": params})
-    assert_equal(data["result"], expect["result"])
+    for i in params:
+        expect = get_expect(method, i)
+        data = await protocol.scripthash_get_history(writer, {"params": i})
+        assert_equal(data["result"], expect["result"])
 
 
 async def test_scripthash_listunspent(protocol, writer, method):
     params = [
-        "c036b0ff3ad79662cd517cd5fe1fa0af07377b9262d16f276f11ced69aaa6921"
+        ["c036b0ff3ad79662cd517cd5fe1fa0af07377b9262d16f276f11ced69aaa6921"],
+        ["92dd1eb7c042956d3dd9185a58a2578f61fee91347196604540838ccd0f8c08c"],
     ]
-    expect = get_expect(method, params)
-    data = await protocol.scripthash_listunspent(writer, {"params": params})
-    assert_equal(data["result"], expect["result"])
-
-    params = [
-        "92dd1eb7c042956d3dd9185a58a2578f61fee91347196604540838ccd0f8c08c"
-    ]
-    # Blockstream is broken here and doesn't return in ascending order.
-    expect = get_expect(method, params)
-    srt = sorted(expect["result"], key=lambda x: x["height"])
-    data = await protocol.scripthash_listunspent(writer, {"params": params})
-    assert_equal(data["result"], srt)
+    for i in params:
+        # Blockstream is broken here and doesn't return in ascending order.
+        expect = get_expect(method, i)
+        srt = sorted(expect["result"], key=lambda x: x["height"])
+        data = await protocol.scripthash_listunspent(writer, {"params": i})
+        assert_equal(data["result"], srt)
 
 
 async def test_scripthash_subscribe(protocol, writer, method):
     params = [
-        "92dd1eb7c042956d3dd9185a58a2578f61fee91347196604540838ccd0f8c08c"
+        ["92dd1eb7c042956d3dd9185a58a2578f61fee91347196604540838ccd0f8c08c"],
     ]
-    expect = get_expect(method, params)
-    data = await protocol.scripthash_subscribe(writer, {"params": params})
-    assert_equal(data["result"], expect["result"])
+    for i in params:
+        expect = get_expect(method, i)
+        data = await protocol.scripthash_subscribe(writer, {"params": i})
+        assert_equal(data["result"], expect["result"])
 
 
 async def test_scripthash_unsubscribe(protocol, writer, method):
     # Here blockstream doesn't even care
     params = [
-        "92dd1eb7c042956d3dd9185a58a2578f61fee91347196604540838ccd0f8c08c"
+        ["92dd1eb7c042956d3dd9185a58a2578f61fee91347196604540838ccd0f8c08c"],
     ]
-    data = await protocol.scripthash_unsubscribe(writer, {"params": params})
-    assert data["result"] is True
+    for i in params:
+        data = await protocol.scripthash_unsubscribe(writer, {"params": i})
+        assert data["result"] is True
 
 
 async def test_transaction_get(protocol, writer, method):
     params = [
-        "a9c3c22cc2589284288b28e802ea81723d649210d59dfa7e03af00475f4cec20"
+        ["a9c3c22cc2589284288b28e802ea81723d649210d59dfa7e03af00475f4cec20"],
     ]
-    expect = get_expect(method, params)
-    data = await protocol.transaction_get(writer, {"params": params})
-    assert_equal(data["result"], expect["result"])
+    for i in params:
+        expect = get_expect(method, i)
+        data = await protocol.transaction_get(writer, {"params": i})
+        assert_equal(data["result"], expect["result"])
 
 
 async def test_transaction_get_merkle(protocol, writer, method):
     params = [
-        "a9c3c22cc2589284288b28e802ea81723d649210d59dfa7e03af00475f4cec20",
-        1970700,
+        [
+            "a9c3c22cc2589284288b28e802ea81723d649210d59dfa7e03af00475f4cec20",
+            1970700,
+        ],
     ]
-    expect = get_expect(method, params)
-    data = await protocol.transaction_get_merkle(writer, {"params": params})
-    assert_equal(data["result"], expect["result"])
+    for i in params:
+        expect = get_expect(method, i)
+        data = await protocol.transaction_get_merkle(writer, {"params": i})
+        assert_equal(data["result"], expect["result"])
 
 
 async def test_transaction_id_from_pos(protocol, writer, method):
-    params = [1970700, 28]
-    expect = get_expect(method, params)
-    data = await protocol.transaction_id_from_pos(writer, {"params": params})
-    assert_equal(data["result"], expect["result"])
-
-    params = [1970700, 28, True]
-    expect = get_expect(method, params)
-    data = await protocol.transaction_id_from_pos(writer, {"params": params})
-    assert_equal(data["result"], expect["result"])
+    params = [[1970700, 28], [1970700, 28, True]]
+    for i in params:
+        expect = get_expect(method, i)
+        data = await protocol.transaction_id_from_pos(writer, {"params": i})
+        assert_equal(data["result"], expect["result"])
 
 
 async def test_ping(protocol, writer, method):
