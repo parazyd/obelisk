@@ -4,20 +4,18 @@ from setuptools import setup
 from obelisk.protocol import VERSION
 
 setup(
-    name="Obelisk",
+    name="obelisk",
     version=VERSION,
-    packages=["obelisk"],
-    package_dir={
-        "obelisk": "obelisk",
-    },
-    install_requires=["pyzmq"],
     scripts=["obelisk/obelisk"],
-    description="Electrum server using libbitcoin and zmq as backend",
+    python_requires=">=3.7",
+    install_requires=["pyzmq"],
+    packages=["obelisk"],
+    description="Obelisk Electrum server",
     author="Ivan J.",
     author_email="parazyd@dyne.org",
     license="AGPL-3",
     url="https://github.com/parazyd/obelisk",
-    long_description="""Electrum server using libbitcoin and zmq as backend""",
+    long_description="Electrum server using libbitcoin and zmq as backend",
     include_package_data=True,
     data_files=[("share/doc/obelisk", ["README.md", "res/obelisk.cfg"])],
 )
