@@ -29,7 +29,7 @@ TODO
 Dependencies
 ------------
 
-* Python 3
+* Python 3.7 or later
 * pyzmq (python3-zmq or dev-python/pyzmq)
 
 
