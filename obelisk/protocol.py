@@ -653,15 +653,14 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         Return a list of features and services supported by the server.
         """
         cfg = self.server_cfg
+        hosts = {}
+        for host in cfg["server_hostnames"]:
+            hosts[host] = {"tcp_port": cfg["server_port"]}
+
         return {
             "result": {
                 "genesis_hash": self.genesis,
-                "hosts": {
-                    cfg["server_hostname"]: {
-                        "tcp_port": cfg["server_port"],
-                        "ssl_port": None,
-                    },
-                },
+                "hosts": hosts,
                 "protocol_max": SERVER_PROTO_MAX,
                 "protocol_min": SERVER_PROTO_MIN,
                 "pruning": None,
