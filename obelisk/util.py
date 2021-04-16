@@ -81,7 +81,6 @@ def block_to_header(block):
     """Return block header from raw block"""
     if not isinstance(block, (bytes, bytearray)):
         raise ValueError("block is not of type bytes/bytearray")
-    # TODO: check endianness
     block_header = block[:80]
     # version = block_header[:4]
     # prev_merkle_root = block_header[4:36]
