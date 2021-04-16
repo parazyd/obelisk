@@ -10,6 +10,7 @@ A **work-in-progress** implementation of an
 [![Tests](https://github.com/parazyd/obelisk/actions/workflows/py.yaml/badge.svg)](https://github.com/parazyd/obelisk/actions/workflows/py.yaml)
 [![CodeQL](https://github.com/parazyd/obelisk/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/parazyd/obelisk/actions/workflows/codeql-analysis.yml)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](LICENSE)
+[![codecov](https://codecov.io/gh/parazyd/obelisk/branch/master/graph/badge.svg?token=JL5FKYM9IX)](https://codecov.io/gh/parazyd/obelisk)
 
 Please consider donating to support development:
 
