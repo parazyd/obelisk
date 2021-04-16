@@ -14,3 +14,4 @@ coverage:
 	coverage run tests
 	coverage report
 	coverage html
+	coverage xml
