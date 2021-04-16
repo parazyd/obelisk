@@ -107,7 +107,7 @@ class ClientSettings:
 
     @context.setter
     def context(self, context):
-        self._context = context
+        self._context = context  # pragma: no cover
 
     @property
     def timeout(self):
@@ -116,7 +116,7 @@ class ClientSettings:
 
     @timeout.setter
     def timeout(self, timeout):
-        self._timeout = timeout
+        self._timeout = timeout  # pragma: no cover
 
 
 class Request:

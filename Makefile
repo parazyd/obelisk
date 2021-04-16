@@ -8,8 +8,9 @@ format:
 	python3 ./res/format_code.py
 
 test:
-	python3 ./tests/test_electrum_protocol.py
+	python3 tests
 
 coverage:
 	coverage run tests
 	coverage report
+	coverage html

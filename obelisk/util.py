@@ -30,7 +30,7 @@ def is_non_negative_integer(val):
     """Check if val is of type int and non-negative"""
     if is_integer(val):
         return val >= 0
-    return False
+    return False  # pragma: no cover
 
 
 def is_boolean(val):
@@ -38,7 +38,7 @@ def is_boolean(val):
     return isinstance(val, bool)
 
 
-def is_hex_str(text):
+def is_hex_str(text):  # pragma: no cover
     """Check if text is a hex string"""
     if not isinstance(text, str):
         return False
@@ -52,7 +52,7 @@ def is_hex_str(text):
     return True
 
 
-def is_hash256_str(text):
+def is_hash256_str(text):  # pragma: no cover
     """Check if text is a sha256 hash"""
     if not isinstance(text, str):
         return False
@@ -77,7 +77,7 @@ def bh2u(val):
     return val.hex()
 
 
-def block_to_header(block):
+def block_to_header(block):  # pragma: no cover
     """Return block header from raw block"""
     if not isinstance(block, (bytes, bytearray)):
         raise ValueError("block is not of type bytes/bytearray")

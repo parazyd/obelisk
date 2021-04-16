@@ -17,7 +17,7 @@
 """JSON-RPC errors: https://www.jsonrpc.org/specification#error_object"""
 
 
-class JsonRPCError:
+class JsonRPCError:  # pragma: no cover
     """Class implementing functions returning JSON-RPC errors"""
 
     def __init__(self):

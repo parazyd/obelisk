@@ -71,7 +71,7 @@ It is also recommended to run the test suite and see if anything
 fails:
 
 ```
-python3 ./tests/test_electrum_protocol.py
+python3 tests
 ```
 
 You can chat about Obelisk on Freenode IRC, either `#electrum` or

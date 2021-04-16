@@ -70,7 +70,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         self.tasks = []
         self.sh_subscriptions = {}
 
-        if chain == "mainnet":
+        if chain == "mainnet":  # pragma: no cover
             self.genesis = "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
         elif chain == "testnet":
             self.genesis = "000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943"
@@ -109,7 +109,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         self.log.debug("ElectrumProtocol.stop()")
         if self.bx:
             unsub_pool = []
-            for i in self.sh_subscriptions:
+            for i in self.sh_subscriptions:  # pragma: no cover
                 self.log.debug("bx.unsubscribe %s", i)
                 unsub_pool.append(self.bx.unsubscribe_scripthash(i))
             await asyncio.gather(*unsub_pool, return_exceptions=True)

@@ -22,7 +22,7 @@ def make_error_code(ec):
     """Return ErrorCode from ec"""
     if not ec:
         return None
-    return ErrorCode(ec)
+    return ErrorCode(ec)  # pragma: no cover
 
 
 class ErrorCode(Enum):

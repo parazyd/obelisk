@@ -20,7 +20,7 @@ from math import ceil, log
 from obelisk.util import double_sha256, hash_to_hex_str
 
 
-def branch_length(hash_count):
+def branch_length(hash_count):  # pragma: no cover
     """Return the length of a merkle branch given the number of hashes"""
     if not isinstance(hash_count, int):
         raise TypeError("hash_count must be an integer")
@@ -35,14 +35,14 @@ def merkle_branch_and_root(hashes, index, length=None):
     """
     hashes = list(hashes)
     if not isinstance(index, int):
-        raise TypeError("index must be an integer")
+        raise TypeError("index must be an integer")  # pragma: no cover
     # This also asserts hashes is not empty
     if not 0 <= index < len(hashes):
-        raise ValueError("index out of range")
+        raise ValueError("index out of range")  # pragma: no cover
     natural_length = branch_length(len(hashes))
     if length is None:
         length = natural_length
-    else:
+    else:  # pragma: no cover
         if not isinstance(length, int):
             raise TypeError("length must be an integer")
         if length < natural_length:

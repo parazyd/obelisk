@@ -59,11 +59,11 @@ def get_expect(method, params):
     recv_buf = bytearray()
     while True:
         data = bs.recv(4096)
-        if not data or len(data) == 0:
+        if not data or len(data) == 0:  # pragma: no cover
             raise ValueError("No data received from blockstream")
         recv_buf.extend(data)
         lb = recv_buf.find(b"\n")
-        if lb == -1:
+        if lb == -1:  # pragma: no cover
             continue
         while lb != -1:
             line = recv_buf[:lb].rstrip()
@@ -74,7 +74,7 @@ def get_expect(method, params):
             return resp
 
 
-def assert_equal(data, expect):
+def assert_equal(data, expect):  # pragma: no cover
     try:
         assert data == expect
     except AssertionError:
@@ -208,7 +208,7 @@ async def test_server_version(protocol, writer, method):
     assert_equal(data["result"], expect["result"])
 
 
-class MockWriter(asyncio.StreamWriter):
+class MockWriter(asyncio.StreamWriter):  # pragma: no cover
     """Mock class for StreamWriter"""
 
     def __init__(self):
@@ -265,7 +265,7 @@ async def main():
             await orchestration[func](protocol, writer, func)
             print(f"PASS: {func}")
             test_pass.append(func)
-        except AssertionError:
+        except AssertionError:  # pragma: no cover
             print(f"FAIL: {func}")
             traceback.print_exc()
             test_fail.append(func)
@@ -279,7 +279,3 @@ async def main():
 
     ret = 1 if len(test_fail) > 0 else 0
     sys.exit(ret)
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
