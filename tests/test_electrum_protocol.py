@@ -28,7 +28,12 @@ from logging import getLogger
 from pprint import pprint
 from socket import socket, AF_INET, SOCK_STREAM
 
-from obelisk.protocol import ElectrumProtocol
+from obelisk.protocol import (
+    ElectrumProtocol,
+    VERSION,
+    SERVER_PROTO_MIN,
+    SERVER_PROTO_MAX,
+)
 from obelisk.zeromq import create_random_id
 
 libbitcoin = {
@@ -196,6 +201,13 @@ async def test_ping(protocol, writer, method):
     assert_equal(data["result"], expect["result"])
 
 
+async def test_server_version(protocol, writer, method):
+    params = ["obelisk 42", [SERVER_PROTO_MIN, SERVER_PROTO_MAX]]
+    expect = {"result": [f"obelisk {VERSION}", SERVER_PROTO_MAX]}
+    data = await protocol.server_version(writer, {"params": params})
+    assert_equal(data["result"], expect["result"])
+
+
 class MockWriter(asyncio.StreamWriter):
     """Mock class for StreamWriter"""
 
@@ -211,6 +223,8 @@ class MockWriter(asyncio.StreamWriter):
 
 # Test orchestration
 orchestration = {
+    "server.version": test_server_version,
+    "server.ping": test_ping,
     "blockchain.block.header": test_block_header,
     "blockchain.block.headers": test_block_headers,
     # "blockchain.estimatefee": test_estimatefee,
@@ -231,8 +245,6 @@ orchestration = {
     # "server.donation_address": test_donation_address,
     # "server.features": test_server_features,
     # "server.peers_subscribe": test_peers_subscribe,
-    "server.ping": test_ping,
-    # "server.version": test_server_version,
 }
 
 
