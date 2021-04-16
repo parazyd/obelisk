@@ -207,9 +207,8 @@ class RequestCollection:
         if response.request_id in self._requests:
             self._handle_response(response)
         else:
-            print(
-                f"DEBUG: RequestCollection unhandled response {response.command}:{response.request_id}"  # pylint: disable=C0301
-            )
+            print("DEBUG: RequestCollection unhandled response %s:%s" %
+                  (response.command, response.request_id))
 
     def _handle_response(self, response):
         request = self._requests[response.request_id]
