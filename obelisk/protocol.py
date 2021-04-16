@@ -79,52 +79,29 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
 
         # Here we map available methods to their respective functions
         self.methodmap = {
-            "blockchain.block.header":
-                self.blockchain_block_header,
-            "blockchain.block.headers":
-                self.blockchain_block_headers,
-            "blockchain.estimatefee":
-                self.blockchain_estimatefee,
-            "blockchain.headers.subscribe":
-                self.blockchain_headers_subscribe,
-            "blockchain.relayfee":
-                self.blockchain_relayfee,
-            "blockchain.scripthash.get_balance":
-                self.blockchain_scripthash_get_balance,
-            "blockchain.scripthash.get_history":
-                self.blockchain_scripthash_get_history,
-            "blockchain.scripthash.get_mempool":
-                self.blockchain_scripthash_get_mempool,
-            "blockchain.scripthash.listunspent":
-                self.blockchain_scripthash_listunspent,
-            "blockchain.scripthash.subscribe":
-                self.blockchain_scripthash_subscribe,
-            "blockchain.scripthash.unsubscribe":
-                self.blockchain_scripthash_unsubscribe,
-            "blockchain.transaction.broadcast":
-                self.blockchain_transaction_broadcast,
-            "blockchain.transaction.get":
-                self.blockchain_transaction_get,
-            "blockchain.transaction.get_merkle":
-                self.blockchain_transaction_get_merkle,
-            "blockchain.transaction.id_from_pos":
-                self.blockchain_transaction_id_from_pos,
-            "mempool.get_fee_histogram":
-                self.mempool_get_fee_histogram,
-            "server_add_peer":
-                self.server_add_peer,
-            "server.banner":
-                self.server_banner,
-            "server.donation_address":
-                self.server_donation_address,
-            "server.features":
-                self.server_features,
-            "server.peers.subscribe":
-                self.server_peers_subscribe,
-            "server.ping":
-                self.server_ping,
-            "server.version":
-                self.server_version,
+            "blockchain.block.header": self.block_header,
+            "blockchain.block.headers": self.block_headers,
+            "blockchain.estimatefee": self.estimatefee,
+            "blockchain.headers.subscribe": self.headers_subscribe,
+            "blockchain.relayfee": self.relayfee,
+            "blockchain.scripthash.get_balance": self.scripthash_get_balance,
+            "blockchain.scripthash.get_history": self.scripthash_get_history,
+            "blockchain.scripthash.get_mempool": self.scripthash_get_mempool,
+            "blockchain.scripthash.listunspent": self.scripthash_listunspent,
+            "blockchain.scripthash.subscribe": self.scripthash_subscribe,
+            "blockchain.scripthash.unsubscribe": self.scripthash_unsubscribe,
+            "blockchain.transaction.broadcast": self.transaction_broadcast,
+            "blockchain.transaction.get": self.transaction_get,
+            "blockchain.transaction.get_merkle": self.transaction_get_merkle,
+            "blockchain.transaction.id_from_pos": self.transaction_id_from_pos,
+            "mempool.get_fee_histogram": self.get_fee_histogram,
+            "server_add_peer": self.add_peer,
+            "server.banner": self.banner,
+            "server.donation_address": self.donation_address,
+            "server.features": self.server_features,
+            "server.peers.subscribe": self.peers_subscribe,
+            "server.ping": self.ping,
+            "server.version": self.server_version,
         }
 
     async def stop(self):
@@ -241,7 +218,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
             "root": hash_to_hex_str(root),
         }
 
-    async def blockchain_block_header(self, writer, query):  # pylint: disable=W0613,R0911
+    async def block_header(self, writer, query):  # pylint: disable=W0613,R0911
         """Method: blockchain.block.header
         Return the block header at the given height.
         """
@@ -267,7 +244,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         res = await self._merkle_proof_for_headers(cp_height, index)
         return {"result": res}
 
-    async def blockchain_block_headers(self, writer, query):  # pylint: disable=W0613,R0911
+    async def block_headers(self, writer, query):  # pylint: disable=W0613,R0911
         """Method: blockchain.block.headers
         Return a concatenated chunk of block headers from the main chain.
         """
@@ -311,7 +288,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
 
         return {"result": resp}
 
-    async def blockchain_estimatefee(self, writer, query):  # pylint: disable=W0613
+    async def estimatefee(self, writer, query):  # pylint: disable=W0613
         """Method: blockchain.estimatefee
         Return the estimated transaction fee per kilobyte for a transaction
         to be confirmed within a certain number of blocks.
@@ -335,7 +312,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
                                           "blockchain.headers.subscribe",
                                           params)
 
-    async def blockchain_headers_subscribe(self, writer, query):  # pylint: disable=W0613
+    async def headers_subscribe(self, writer, query):  # pylint: disable=W0613
         """Method: blockchain.headers.subscribe
         Subscribe to receive block headers when a new block is found.
         """
@@ -353,15 +330,14 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         ret = {"height": height, "hex": safe_hexlify(tip_header)}
         return {"result": ret}
 
-    async def blockchain_relayfee(self, writer, query):  # pylint: disable=W0613
+    async def relayfee(self, writer, query):  # pylint: disable=W0613
         """Method: blockchain.relayfee
         Return the minimum fee a low-priority transaction must pay in order
         to be accepted to the daemon’s memory pool.
         """
-        # TODO: Help wanted
         return {"result": 0.00001}
 
-    async def blockchain_scripthash_get_balance(self, writer, query):  # pylint: disable=W0613
+    async def scripthash_get_balance(self, writer, query):  # pylint: disable=W0613
         """Method: blockchain.scripthash.get_balance
         Return the confirmed and unconfirmed balances of a script hash.
         """
@@ -380,7 +356,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         ret = {"confirmed": data, "unconfirmed": 0}
         return {"result": ret}
 
-    async def blockchain_scripthash_get_history(self, writer, query):  # pylint: disable=W0613
+    async def scripthash_get_history(self, writer, query):  # pylint: disable=W0613
         """Method: blockchain.scripthash.get_history
         Return the confirmed and unconfirmed history of a script hash.
         """
@@ -412,14 +388,14 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
 
         return {"result": ret}
 
-    async def blockchain_scripthash_get_mempool(self, writer, query):  # pylint: disable=W0613
+    async def scripthash_get_mempool(self, writer, query):  # pylint: disable=W0613
         """Method: blockchain.scripthash.get_mempool
         Return the unconfirmed transactions of a script hash.
         """
         # TODO: Implement
         return JsonRPCError.invalidrequest()
 
-    async def blockchain_scripthash_listunspent(self, writer, query):  # pylint: disable=W0613
+    async def scripthash_listunspent(self, writer, query):  # pylint: disable=W0613
         """Method: blockchain.scripthash.listunspent
         Return an ordered list of UTXOs sent to a script hash.
         """
@@ -460,7 +436,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
             item = await sh_queue.get()
             self.log.debug("sh_subscription item: %s", item)
 
-    async def blockchain_scripthash_subscribe(self, writer, query):  # pylint: disable=W0613
+    async def scripthash_subscribe(self, writer, query):  # pylint: disable=W0613
         """Method: blockchain.scripthash.subscribe
         Subscribe to a script hash.
         """
@@ -505,7 +481,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
             concat += txid + ":%d:" % height
         return bh2u(sha256(concat.encode("ascii")))
 
-    async def blockchain_scripthash_unsubscribe(self, writer, query):  # pylint: disable=W0613
+    async def scripthash_unsubscribe(self, writer, query):  # pylint: disable=W0613
         """Method: blockchain.scripthash.unsubscribe
         Unsubscribe from a script hash, preventing future notifications
         if its status changes.
@@ -525,7 +501,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
 
         return {"result": False}
 
-    async def blockchain_transaction_broadcast(self, writer, query):  # pylint: disable=W0613
+    async def transaction_broadcast(self, writer, query):  # pylint: disable=W0613
         """Method: blockchain.transaction.broadcast
         Broadcast a transaction to the network.
         """
@@ -546,7 +522,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         txid = double_sha256(rawtx)
         return {"result": hash_to_hex_str(txid)}
 
-    async def blockchain_transaction_get(self, writer, query):  # pylint: disable=W0613
+    async def transaction_get(self, writer, query):  # pylint: disable=W0613
         """Method: blockchain.transaction.get
         Return a raw transaction.
         """
@@ -572,7 +548,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
 
         return {"result": bh2u(rawtx)}
 
-    async def blockchain_transaction_get_merkle(self, writer, query):  # pylint: disable=W0613
+    async def transaction_get_merkle(self, writer, query):  # pylint: disable=W0613
         """Method: blockchain.transaction.get_merkle
         Return the merkle branch to a confirmed transaction given its
         hash and height.
@@ -605,7 +581,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         }
         return {"result": res}
 
-    async def blockchain_transaction_id_from_pos(self, writer, query):  # pylint: disable=R0911,W0613
+    async def transaction_id_from_pos(self, writer, query):  # pylint: disable=R0911,W0613
         """Method: blockchain.transaction.id_from_pos
         Return a transaction hash and optionally a merkle proof, given a
         block height and a position in the block.
@@ -642,7 +618,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         branch = merkle_branch(hashes, tx_pos)
         return {"result": {"tx_hash": txid, "merkle": branch}}
 
-    async def mempool_get_fee_histogram(self, writer, query):  # pylint: disable=W0613
+    async def get_fee_histogram(self, writer, query):  # pylint: disable=W0613
         """Method: mempool.get_fee_histogram
         Return a histogram of the fee rates paid by transactions in the
         memory pool, weighted by transaction size.
@@ -650,7 +626,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         # TODO: Help wanted
         return {"result": [[0, 0]]}
 
-    async def server_add_peer(self, writer, query):  # pylint: disable=W0613
+    async def add_peer(self, writer, query):  # pylint: disable=W0613
         """Method: server.add_peer
         A newly-started server uses this call to get itself into other
         servers’ peers lists. It should not be used by wallet clients.
@@ -658,13 +634,13 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         # TODO: Help wanted
         return {"result": False}
 
-    async def server_banner(self, writer, query):  # pylint: disable=W0613
+    async def banner(self, writer, query):  # pylint: disable=W0613
         """Method: server.banner
         Return a banner to be shown in the Electrum console.
         """
         return {"result": BANNER}
 
-    async def server_donation_address(self, writer, query):  # pylint: disable=W0613
+    async def donation_address(self, writer, query):  # pylint: disable=W0613
         """Method: server.donation_address
         Return a server donation address.
         """
@@ -692,7 +668,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
             }
         }
 
-    async def server_peers_subscribe(self, writer, query):  # pylint: disable=W0613
+    async def peers_subscribe(self, writer, query):  # pylint: disable=W0613
         """Method: server.peers.subscribe
         Return a list of peer servers. Despite the name this is not a
         subscription and the server must send no notifications.
@@ -700,7 +676,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         # TODO: Help wanted
         return {"result": []}
 
-    async def server_ping(self, writer, query):  # pylint: disable=W0613
+    async def ping(self, writer, query):  # pylint: disable=W0613
         """Method: server.ping
         Ping the server to ensure it is responding, and to keep the session
         alive. The server may disconnect clients that have sent no requests

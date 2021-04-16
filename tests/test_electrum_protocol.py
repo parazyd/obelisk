@@ -80,79 +80,68 @@ def assert_equal(data, expect):
         raise
 
 
-async def test_blockchain_block_header(protocol, writer):
-    method = "blockchain.block.header"
+async def test_block_header(protocol, writer, method):
     params = [123]
     expect = get_expect(method, params)
-    data = await protocol.blockchain_block_header(writer, {"params": params})
+    data = await protocol.block_header(writer, {"params": params})
     assert_equal(data["result"], expect["result"])
 
     params = [1, 5]
     expect = get_expect(method, params)
-    data = await protocol.blockchain_block_header(writer, {"params": params})
+    data = await protocol.block_header(writer, {"params": params})
     assert_equal(data["result"], expect["result"])
 
 
-async def test_blockchain_block_headers(protocol, writer):
-    method = "blockchain.block.headers"
+async def test_block_headers(protocol, writer, method):
     params = [123, 3]
     expect = get_expect(method, params)
-    data = await protocol.blockchain_block_headers(writer, {"params": params})
+    data = await protocol.block_headers(writer, {"params": params})
     assert_equal(data["result"], expect["result"])
 
     params = [11, 3, 14]
     expect = get_expect(method, params)
-    data = await protocol.blockchain_block_headers(writer, {"params": params})
+    data = await protocol.block_headers(writer, {"params": params})
     assert_equal(data["result"], expect["result"])
 
 
-async def test_blockchain_headers_subscribe(protocol, writer):
-    method = "blockchain.headers.subscribe"
+async def test_headers_subscribe(protocol, writer, method):
     params = []
     expect = get_expect(method, params)
-    data = await protocol.blockchain_headers_subscribe(writer,
-                                                       {"params": params})
+    data = await protocol.headers_subscribe(writer, {"params": params})
     assert_equal(data["result"], expect["result"])
 
 
-async def test_blockchain_scripthash_get_balance(protocol, writer):
-    method = "blockchain.scripthash.get_balance"
+async def test_scripthash_get_balance(protocol, writer, method):
     params = [
         "c036b0ff3ad79662cd517cd5fe1fa0af07377b9262d16f276f11ced69aaa6921"
     ]
     expect = get_expect(method, params)
-    data = await protocol.blockchain_scripthash_get_balance(
-        writer, {"params": params})
+    data = await protocol.scripthash_get_balance(writer, {"params": params})
     assert_equal(data["result"], expect["result"])
 
     params = [
         "92dd1eb7c042956d3dd9185a58a2578f61fee91347196604540838ccd0f8c08c"
     ]
     expect = get_expect(method, params)
-    data = await protocol.blockchain_scripthash_get_balance(
-        writer, {"params": params})
+    data = await protocol.scripthash_get_balance(writer, {"params": params})
     assert_equal(data["result"], expect["result"])
 
 
-async def test_blockchain_scripthash_get_history(protocol, writer):
-    method = "blockchain.scripthash.get_history"
+async def test_scripthash_get_history(protocol, writer, method):
     params = [
         "c036b0ff3ad79662cd517cd5fe1fa0af07377b9262d16f276f11ced69aaa6921"
     ]
     expect = get_expect(method, params)
-    data = await protocol.blockchain_scripthash_get_history(
-        writer, {"params": params})
+    data = await protocol.scripthash_get_history(writer, {"params": params})
     assert_equal(data["result"], expect["result"])
 
 
-async def test_blockchain_scripthash_listunspent(protocol, writer):
-    method = "blockchain.scripthash.listunspent"
+async def test_scripthash_listunspent(protocol, writer, method):
     params = [
         "c036b0ff3ad79662cd517cd5fe1fa0af07377b9262d16f276f11ced69aaa6921"
     ]
     expect = get_expect(method, params)
-    data = await protocol.blockchain_scripthash_listunspent(
-        writer, {"params": params})
+    data = await protocol.scripthash_listunspent(writer, {"params": params})
     assert_equal(data["result"], expect["result"])
 
     params = [
@@ -161,74 +150,63 @@ async def test_blockchain_scripthash_listunspent(protocol, writer):
     # Blockstream is broken here and doesn't return in ascending order.
     expect = get_expect(method, params)
     srt = sorted(expect["result"], key=lambda x: x["height"])
-    data = await protocol.blockchain_scripthash_listunspent(
-        writer, {"params": params})
+    data = await protocol.scripthash_listunspent(writer, {"params": params})
     assert_equal(data["result"], srt)
 
 
-async def test_blockchain_scripthash_subscribe(protocol, writer):
-    method = "blockchain.scripthash.subscribe"
+async def test_scripthash_subscribe(protocol, writer, method):
     params = [
         "92dd1eb7c042956d3dd9185a58a2578f61fee91347196604540838ccd0f8c08c"
     ]
     expect = get_expect(method, params)
-    data = await protocol.blockchain_scripthash_subscribe(
-        writer, {"params": params})
+    data = await protocol.scripthash_subscribe(writer, {"params": params})
     assert_equal(data["result"], expect["result"])
 
 
-async def test_blockchain_scripthash_unsubscribe(protocol, writer):
+async def test_scripthash_unsubscribe(protocol, writer, method):
     # Here blockstream doesn't even care
     params = [
         "92dd1eb7c042956d3dd9185a58a2578f61fee91347196604540838ccd0f8c08c"
     ]
-    data = await protocol.blockchain_scripthash_unsubscribe(
-        writer, {"params": params})
+    data = await protocol.scripthash_unsubscribe(writer, {"params": params})
     assert data["result"] is True
 
 
-async def test_blockchain_transaction_get(protocol, writer):
-    method = "blockchain.transaction.get"
+async def test_transaction_get(protocol, writer, method):
     params = [
         "a9c3c22cc2589284288b28e802ea81723d649210d59dfa7e03af00475f4cec20"
     ]
     expect = get_expect(method, params)
-    data = await protocol.blockchain_transaction_get(writer, {"params": params})
+    data = await protocol.transaction_get(writer, {"params": params})
     assert_equal(data["result"], expect["result"])
 
 
-async def test_blockchain_transaction_get_merkle(protocol, writer):
-    method = "blockchain.transaction.get_merkle"
+async def test_transaction_get_merkle(protocol, writer, method):
     params = [
         "a9c3c22cc2589284288b28e802ea81723d649210d59dfa7e03af00475f4cec20",
         1970700,
     ]
     expect = get_expect(method, params)
-    data = await protocol.blockchain_transaction_get_merkle(
-        writer, {"params": params})
+    data = await protocol.transaction_get_merkle(writer, {"params": params})
     assert_equal(data["result"], expect["result"])
 
 
-async def test_blockchain_transaction_id_from_pos(protocol, writer):
-    method = "blockchain.transaction.id_from_pos"
+async def test_transaction_id_from_pos(protocol, writer, method):
     params = [1970700, 28]
     expect = get_expect(method, params)
-    data = await protocol.blockchain_transaction_id_from_pos(
-        writer, {"params": params})
+    data = await protocol.transaction_id_from_pos(writer, {"params": params})
     assert_equal(data["result"], expect["result"])
 
     params = [1970700, 28, True]
     expect = get_expect(method, params)
-    data = await protocol.blockchain_transaction_id_from_pos(
-        writer, {"params": params})
+    data = await protocol.transaction_id_from_pos(writer, {"params": params})
     assert_equal(data["result"], expect["result"])
 
 
-async def test_server_ping(protocol, writer):
-    method = "server.ping"
+async def test_ping(protocol, writer, method):
     params = []
     expect = get_expect(method, params)
-    data = await protocol.server_ping(writer, {"params": params})
+    data = await protocol.ping(writer, {"params": params})
     assert_equal(data["result"], expect["result"])
 
 
@@ -247,40 +225,28 @@ class MockWriter(asyncio.StreamWriter):
 
 # Test orchestration
 orchestration = {
-    "blockchain_block_header":
-        test_blockchain_block_header,
-    "blockchain_block_headers":
-        test_blockchain_block_headers,
-    # "blockchain_estimatefee": test_blockchain_estimatefee,
-    "blockchain_headers_subscribe":
-        test_blockchain_headers_subscribe,
-    # "blockchain_relayfee": test_blockchain_relayfee,
-    "blockchain_scripthash_get_balance":
-        test_blockchain_scripthash_get_balance,
-    "blockchain_scripthash_get_history":
-        test_blockchain_scripthash_get_history,
-    # "blockchain_scripthash_get_mempool": test_blockchain_scripthash_get_mempool,
-    "blockchain_scripthash_listunspent":
-        test_blockchain_scripthash_listunspent,
-    "blockchain_scripthash_subscribe":
-        test_blockchain_scripthash_subscribe,
-    "blockchain_scripthash_unsubscribe":
-        test_blockchain_scripthash_unsubscribe,
-    # "blockchain_transaction_broadcast": test_blockchain_transaction_broadcast,
-    "blockchain_transaction_get":
-        test_blockchain_transaction_get,
-    "blockchain_transaction_get_merkle":
-        test_blockchain_transaction_get_merkle,
-    "blockchain_transaction_id_from_pos":
-        test_blockchain_transaction_id_from_pos,
-    # "mempool_get_fee_histogram": test_mempool_get_fee_histogram,
-    # "server_add_peer": test_server_add_peer,
-    # "server_donation_address": test_server_donation_address,
-    # "server_features": test_server_features,
-    # "server_peers_subscribe": test_server_peers_subscribe,
-    "server_ping":
-        test_server_ping,
-    # "server_version": test_server_version,
+    "blockchain.block.header": test_block_header,
+    "blockchain.block.headers": test_block_headers,
+    # "blockchain.estimatefee": test_estimatefee,
+    "blockchain.headers.subscribe": test_headers_subscribe,
+    # "blockchain.relayfee": test_relayfee,
+    "blockchain.scripthash.get_balance": test_scripthash_get_balance,
+    "blockchain.scripthash.get_history": test_scripthash_get_history,
+    # "blockchain.scripthash.get_mempool": test_scripthash_get_mempool,
+    "blockchain.scripthash.listunspent": test_scripthash_listunspent,
+    "blockchain.scripthash.subscribe": test_scripthash_subscribe,
+    "blockchain.scripthash.unsubscribe": test_scripthash_unsubscribe,
+    # "blockchain.transaction.broadcast": test_transaction_broadcast,
+    "blockchain.transaction.get": test_transaction_get,
+    "blockchain.transaction.get_merkle": test_transaction_get_merkle,
+    "blockchain.transaction.id_from_pos": test_transaction_id_from_pos,
+    # "mempool.get_fee_histogram": test_get_fee_histogram,
+    # "server.add_peer": test_add_peer,
+    # "server.donation_address": test_donation_address,
+    # "server.features": test_server_features,
+    # "server.peers_subscribe": test_peers_subscribe,
+    "server.ping": test_ping,
+    # "server.version": test_server_version,
 }
 
 
@@ -298,7 +264,7 @@ async def main():
 
     for func in orchestration:
         try:
-            await orchestration[func](protocol, writer)
+            await orchestration[func](protocol, writer, func)
             print(f"PASS: {func}")
             test_pass.append(func)
         except AssertionError:

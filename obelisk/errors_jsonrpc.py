@@ -48,6 +48,6 @@ class JsonRPCError:
         return {
             "error": {
                 "code": -32100,
-                "message": "protocol version unsupported"
+                "message": "protocol version unsupported",
             }
         }
