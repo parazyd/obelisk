@@ -518,7 +518,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
 
         if scripthash in self.sh_subscriptions:
             self.sh_subscriptions[scripthash]["task"].cancel()
-            await self.bx.unsubscribe_scripthash(scripthash)
+            # await self.bx.unsubscribe_scripthash(scripthash)
             del self.sh_subscriptions[scripthash]
             return {"result": True}
 
