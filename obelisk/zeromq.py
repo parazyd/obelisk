@@ -296,6 +296,14 @@ class Client:
         assert response.request_id == request.id_
         return response.error_code, response.data
 
+    async def server_version(self):
+        """Get the libbitcoin-server version"""
+        command = b"server.version"
+        error_code, data = await self._simple_request(command, b"")
+        if error_code:
+            return error_code, None
+        return error_code, data
+
     async def fetch_last_height(self):
         """Fetch the blockchain tip and return integer height"""
         command = b"blockchain.fetch_last_height"

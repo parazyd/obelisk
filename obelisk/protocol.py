@@ -644,7 +644,13 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         """Method: server.banner
         Return a banner to be shown in the Electrum console.
         """
-        return {"result": BANNER}
+        _, bsversion = await self.bx.server_version()
+        banner = "%s\nobelisk version: %s\nlibbitcoin-server version: %s" % (
+            BANNER,
+            VERSION,
+            bsversion.decode(),
+        )
+        return {"result": banner}
 
     async def donation_address(self, writer, query):  # pylint: disable=W0613
         """Method: server.donation_address
