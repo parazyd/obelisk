@@ -22,8 +22,6 @@ bc1q7an9p5pz6pjwjk4r48zke2yfaevafzpglg26mz
 TODO
 ----
 
-* Better (and more) error handling
-* More testing
 * git grep -nE "TODO:|BUG:"
 
 
