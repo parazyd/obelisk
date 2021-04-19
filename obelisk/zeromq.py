@@ -24,7 +24,7 @@ from random import randint
 import zmq
 import zmq.asyncio
 
-from obelisk.errors_libbitcoin import make_error_code, ErrorCode
+from obelisk.errors_libbitcoin import make_error_code, ZMQError
 from obelisk.util import hash_to_hex_str
 
 
@@ -72,6 +72,20 @@ def checksum(xhash, index):
     hash_upper_49_bits = to_int(last_20_bytes) & mask
     index_lower_15_bits = index & ~mask
     return hash_upper_49_bits | index_lower_15_bits
+
+
+def make_tuple(row):
+    kind, height, tx_hash, index, value = row
+    return (
+        kind,
+        {
+            "hash": tx_hash,
+            "index": index
+        },
+        height,
+        value,
+        checksum(hash_to_hex_str(tx_hash), index),
+    )
 
 
 def unpack_table(row_fmt, data):
@@ -290,7 +304,7 @@ class Client:
                                               self._settings.timeout)
         except asyncio.TimeoutError:
             self._request_collection.delete_request(request)
-            return ErrorCode.channel_timeout, None
+            return ZMQError.channel_timeout, None
 
         assert response.command == request.command
         assert response.request_id == request.id_
@@ -367,19 +381,6 @@ class Client:
             command, decoded_address + struct.pack("<I", height))
         if error_code:
             return error_code, None
-
-        def make_tuple(row):
-            kind, height, tx_hash, index, value = row
-            return (
-                kind,
-                {
-                    "hash": tx_hash,
-                    "index": index
-                },
-                height,
-                value,
-                checksum(hash_to_hex_str(tx_hash), index),
-            )
 
         rows = unpack_table("<BI32sIQ", raw_points)
         points = [make_tuple(row) for row in rows]

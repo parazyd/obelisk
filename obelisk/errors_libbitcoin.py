@@ -22,10 +22,10 @@ def make_error_code(ec):
     """Return ErrorCode from ec"""
     if not ec:
         return None
-    return ErrorCode(ec)  # pragma: no cover
+    return ZMQError(ec)  # pragma: no cover
 
 
-class ErrorCode(Enum):
+class ZMQError(Enum):
     """libbitcoin error codes"""
 
     # general codes
