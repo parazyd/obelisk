@@ -63,6 +63,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         self.endpoints = endpoints
         self.server_cfg = server_cfg
         self.loop = asyncio.get_event_loop()
+        self.chain_tip = 0
         # Consider renaming bx to something else
         self.bx = Client(log, endpoints, self.loop)
         self.block_queue = None
@@ -307,6 +308,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
                 self.log.debug("error: item from block queue len != 3")
                 continue
 
+            self.chain_tip = item[1]
             header = block_to_header(item[2])
             params = [{"height": item[1], "hex": safe_hexlify(header)}]
             await self._send_notification(writer,
@@ -327,6 +329,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
             self.log.debug("Got error: %s", repr(_ec))
             return JsonRPCError.internalerror()
 
+        self.chain_tip = height
         self.tasks.append(asyncio.create_task(self.header_notifier(writer)))
         ret = {"height": height, "hex": safe_hexlify(tip_header)}
         return {"result": ret}
