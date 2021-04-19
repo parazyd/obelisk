@@ -19,9 +19,11 @@ https://electrumx-spesmilo.readthedocs.io/en/latest/protocol-methods.html
 """
 import asyncio
 import json
+import struct
 from binascii import unhexlify
 
 from obelisk.errors_jsonrpc import JsonRPCError
+from obelisk.errors_libbitcoin import ErrorCode
 from obelisk.merkle import merkle_branch, merkle_branch_and_root
 from obelisk.util import (
     bh2u,
@@ -427,16 +429,31 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         return {"result": ret}
 
     async def scripthash_notifier(self, writer, scripthash):
-        # TODO: Figure out how this actually works
-        _ec, sh_queue = await self.bx.subscribe_scripthash(scripthash)
-        if _ec and _ec != 0:
-            self.log.error("bx.subscribe_scripthash failed:", repr(_ec))
-            return
-
+        # TODO: Mempool
+        method = "blockchain.scripthash.subscribe"
         while True:
-            # item = (seq, height, block_data)
+            _ec, sh_queue = await self.bx.subscribe_scripthash(scripthash)
+            if _ec and _ec != 0:
+                self.log.error("bx.subscribe_scripthash failed: %s", repr(_ec))
+                return
+
             item = await sh_queue.get()
-            self.log.debug("sh_subscription item: %s", item)
+            _ec, height, txid = struct.unpack("<HI32s", item)
+
+            if (_ec == ErrorCode.service_stopped.value and height == 0 and
+                    not self.stopped):
+                # Subscription expired
+                continue
+
+            self.sh_subscriptions[scripthash]["status"].append(
+                (hash_to_hex_str(txid), height))
+
+            params = [
+                scripthash,
+                ElectrumProtocol.__scripthash_status_encode(
+                    self.sh_subscriptions[scripthash]["status"]),
+            ]
+            await self._send_notification(writer, method, params)
 
     async def scripthash_subscribe(self, writer, query):  # pylint: disable=W0613
         """Method: blockchain.scripthash.subscribe
@@ -540,7 +557,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
 
         # _ec, rawtx = await self.bx.fetch_blockchain_transaction(tx_hash)
         _ec, rawtx = await self.bx.fetch_mempool_transaction(tx_hash)
-        if _ec and _ec != 0:
+        if _ec and _ec != 0 and _ec != ErrorCode.not_found.value:
             self.log.debug("Got error: %s", repr(_ec))
             return JsonRPCError.internalerror()
 
