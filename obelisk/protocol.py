@@ -412,7 +412,6 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
             self.log.debug("Got error: %s", repr(_ec))
             return JsonRPCError.internalerror()
 
-        # TODO: Check mempool
         ret = []
         for i in utxo:
             rec = i["received"]
@@ -420,7 +419,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
                 "tx_pos": rec["index"],
                 "value": i["value"],
                 "tx_hash": hash_to_hex_str(rec["hash"]),
-                "height": rec["height"],
+                "height": rec["height"] if rec["height"] != 4294967295 else 0,
             })
 
         return {"result": ret}
