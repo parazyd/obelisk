@@ -207,7 +207,7 @@ class RequestCollection:
         if response.request_id in self._requests:
             self._handle_response(response)
         else:
-            print("DEBUG: RequestCollection unhandled response %s:%s" %
+            print("DEBUG; RequestCollection unhandled response %s:%s" %
                   (response.command, response.request_id))
 
     def _handle_response(self, response):
