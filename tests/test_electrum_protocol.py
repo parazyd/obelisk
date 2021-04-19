@@ -399,6 +399,21 @@ async def test_send_reply(protocol, writer, method):
     assert_equal(writer.mock, expect)
 
 
+async def test_handle_query(protocol, writer, method):
+    query = {"jsonrpc": "2.0", "method": method, "id": 42, "params": []}
+    await protocol.handle_query(writer, query)
+
+    method = "server.donation_address"
+    query = {"jsonrpc": "2.0", "method": method, "id": 42, "params": []}
+    await protocol.handle_query(writer, query)
+
+    query = {"jsonrpc": "2.0", "method": method, "params": []}
+    await protocol.handle_query(writer, query)
+
+    query = {"jsonrpc": "2.0", "id": 42, "params": []}
+    await protocol.handle_query(writer, query)
+
+
 class MockTransport:
 
     def __init__(self):
@@ -450,6 +465,7 @@ orchestration = {
     "server.peers_subscribe": test_peers_subscribe,
     "_send_notification": test_send_notification,
     "_send_reply": test_send_reply,
+    "_handle_query": test_handle_query,
 }
 
 
