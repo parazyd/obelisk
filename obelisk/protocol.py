@@ -354,8 +354,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
             self.log.debug("Got error: %s", repr(_ec))
             return JsonRPCError.internalerror()
 
-        # TODO: confirmed/unconfirmed, see what's happening in libbitcoin
-        ret = {"confirmed": data, "unconfirmed": 0}
+        ret = {"confirmed": data[0], "unconfirmed": data[1]}
         return {"result": ret}
 
     async def scripthash_get_history(self, writer, query):  # pylint: disable=W0613

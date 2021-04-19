@@ -401,8 +401,23 @@ class Client:
             return error_code, None
 
         utxo = Client.__receives_without_spends(history)
-        return error_code, functools.reduce(
-            lambda accumulator, point: accumulator + point["value"], utxo, 0)
+
+        return error_code, (
+            # confirmed
+            functools.reduce(
+                lambda accumulator, point: accumulator + point["value"]
+                if point["received"]["height"] != 4294967295 else 0,
+                utxo,
+                0,
+            ),
+            # unconfirmed
+            functools.reduce(
+                lambda accumulator, point: accumulator + point["value"]
+                if point["received"]["height"] == 4294967295 else 0,
+                utxo,
+                0,
+            ),
+        )
 
     async def fetch_utxo(self, scripthash):
         """Find UTXO for given scripthash"""
