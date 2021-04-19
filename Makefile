@@ -1,11 +1,12 @@
 all:
-	@echo "Available targets"
-	@echo "make format - Format code"
-	@echo "make test - Run test units"
+	@echo "Available targets:"
+	@echo
 	@echo "make coverage - Run test units and report code coverage"
+	@echo "make test     - Run test units"
+	@echo "make format   - Format code"
 
 format:
-	python3 ./res/format_code.py
+	yapf --style google -i -r .
 
 test:
 	python3 tests
