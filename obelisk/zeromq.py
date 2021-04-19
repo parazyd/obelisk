@@ -268,7 +268,7 @@ class Client:
 
     async def _subscription_request(self, command, data):
         request = await self._request(command, data)
-        request.queue = asyncio.Queue(loop=self._settings._loop)  # pylint: disable=W0212
+        request.queue = asyncio.Queue()
         error_code, _ = await self._wait_for_response(request)
         return error_code, request.queue
 
@@ -353,8 +353,6 @@ class Client:
 
     async def unsubscribe_scripthash(self, scripthash):
         """Unsubscribe scripthash"""
-        # TODO: This call should ideally also remove the subscription
-        # request from the RequestCollection.
         # This call solicits a final call from the server with an
         # `error::service_stopped` error code.
         command = b"unsubscribe.key"
@@ -390,6 +388,8 @@ class Client:
         # self.log.debug("history correlated: %s", correlated_points)
 
         # BUG: In libbitcoin v4 sometimes transactions mess up and double
+        # https://github.com/libbitcoin/libbitcoin-server/issues/545
+        #
         # The following is not a very efficient solution
         correlated = [
             i for n, i in enumerate(correlated_points)

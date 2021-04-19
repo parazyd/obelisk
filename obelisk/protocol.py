@@ -112,11 +112,11 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         self.log.debug("ElectrumProtocol.stop()")
         self.stopped = True
         if self.bx:
-            unsub_pool = []
-            for i in self.sh_subscriptions:  # pragma: no cover
-                self.log.debug("bx.unsubscribe %s", i)
-                unsub_pool.append(self.bx.unsubscribe_scripthash(i))
-            await asyncio.gather(*unsub_pool, return_exceptions=True)
+            # unsub_pool = []
+            # for i in self.sh_subscriptions:  # pragma: no cover
+            # self.log.debug("bx.unsubscribe %s", i)
+            # unsub_pool.append(self.bx.unsubscribe_scripthash(i))
+            # await asyncio.gather(*unsub_pool, return_exceptions=True)
             await self.bx.stop()
 
         # idxs = []
@@ -470,15 +470,16 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         if _ec and _ec != 0:
             return JsonRPCError.internalerror()
 
-        task = asyncio.create_task(self.scripthash_notifier(writer, scripthash))
-        self.sh_subscriptions[scripthash] = {"task": task}
-
         if len(history) < 1:
             return {"result": None}
 
         # TODO: Check how history4 acts for mempool/unconfirmed
         status = ElectrumProtocol.__scripthash_status_from_history(history)
-        self.sh_subscriptions[scripthash]["status"] = status
+        self.sh_subscriptions[scripthash] = {"status": status}
+
+        task = asyncio.create_task(self.scripthash_notifier(writer, scripthash))
+        self.sh_subscriptions[scripthash]["task"] = task
+
         return {"result": ElectrumProtocol.__scripthash_status_encode(status)}
 
     @staticmethod
