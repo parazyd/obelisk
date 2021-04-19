@@ -3,9 +3,8 @@ obelisk
 
 ![obelisk](res/obelisk.png)
 
-A **work-in-progress** implementation of an
-[Electrum](https://electrum.org) server using
-[libbitcoin](https://libbitcoin.info) as a backend.
+Python implementation of an [Electrum](https://electrum.org) server
+using [libbitcoin](https://libbitcoin.info) as a backend.
 
 [![Tests](https://github.com/parazyd/obelisk/actions/workflows/py.yaml/badge.svg)](https://github.com/parazyd/obelisk/actions/workflows/py.yaml)
 [![CodeQL](https://github.com/parazyd/obelisk/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/parazyd/obelisk/actions/workflows/codeql-analysis.yml)
@@ -29,7 +28,8 @@ Dependencies
 ------------
 
 * Python 3.7 or later
-* pyzmq (python3-zmq or dev-python/pyzmq)
+* [pyzmq](https://pypi.org/project/pyzmq/) (python3-zmq or dev-python/pyzmq)
+* [libbitcoin-server](https://github.com/libbitcoin/libbitcoin-server) (optional)
 
 
 Usage
