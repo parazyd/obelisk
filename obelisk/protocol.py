@@ -107,6 +107,7 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
     async def stop(self):
         """Destructor function"""
         self.log.debug("ElectrumProtocol.stop()")
+        self.stopped = True
         if self.bx:
             unsub_pool = []
             for i in self.sh_subscriptions:  # pragma: no cover
@@ -121,8 +122,6 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         # task.cancel()
         # for i in idxs:
         # del self.tasks[i]
-
-        self.stopped = True
 
     async def recv(self, reader, writer):
         """Loop ran upon a connection which acts as a JSON-RPC handler"""
@@ -458,6 +457,12 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
             return {"result": None}
 
         # TODO: Check how history4 acts for mempool/unconfirmed
+        status = ElectrumProtocol.__scripthash_status_from_history(history)
+        self.sh_subscriptions[scripthash]["status"] = status
+        return {"result": ElectrumProtocol.__scripthash_status_encode(status)}
+
+    @staticmethod
+    def __scripthash_status_from_history(history):
         status = []
         for i in history:
             if "received" in i:
@@ -470,12 +475,10 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
                     hash_to_hex_str(i["spent"]["hash"]),
                     i["spent"]["height"],
                 ))
-
-        self.sh_subscriptions[scripthash]["status"] = status
-        return {"result": ElectrumProtocol.__scripthash_status(status)}
+        return status
 
     @staticmethod
-    def __scripthash_status(status):
+    def __scripthash_status_encode(status):
         concat = ""
         for txid, height in status:
             concat += txid + ":%d:" % height
