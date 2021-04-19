@@ -64,15 +64,14 @@ in `obelisk/protocol.py` and `obelisk/zeromq.py`. `protocol.py`
 implements the ElectrumX protocol, and `zeromq.py` implements the
 libbitcoin side of things.
 
-Before committing code, please run `./res/format_code.py` to format
-the codebase to a certain code style. This scripts depends on `black`
-and `yapf`.
+Before committing code, please run `make format` to format the codebase
+to a certain code style. This script depends on `black` and `yapf`.
 
 It is also recommended to run the test suite and see if anything
 fails:
 
 ```
-python3 tests
+make test
 ```
 
 You can chat about Obelisk on Freenode IRC, either `#electrum` or
