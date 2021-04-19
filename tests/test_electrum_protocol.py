@@ -28,6 +28,7 @@ from logging import getLogger
 from pprint import pprint
 from socket import socket, AF_INET, SOCK_STREAM
 
+from obelisk.errors_jsonrpc import JsonRPCError
 from obelisk.protocol import (
     ElectrumProtocol,
     VERSION,
@@ -106,6 +107,12 @@ async def test_block_header(protocol, writer, method):
         data = await protocol.block_header(writer, {"params": i})
         assert_equal(data["result"], expect["result"])
 
+    params = [[], [-3], [4, -1], [5, 3]]
+    for i in params:
+        expect = JsonRPCError.invalidparams()
+        data = await protocol.block_header(writer, {"params": i})
+        assert_equal(data, expect)
+
 
 async def test_block_headers(protocol, writer, method):
     params = [[123, 3], [11, 3, 14]]
@@ -113,6 +120,12 @@ async def test_block_headers(protocol, writer, method):
         expect = get_expect(method, i)
         data = await protocol.block_headers(writer, {"params": i})
         assert_equal(data["result"], expect["result"])
+
+    params = [[], [1], [-3, 1], [4, -1], [7, 4, 4]]
+    for i in params:
+        expect = JsonRPCError.invalidparams()
+        data = await protocol.block_headers(writer, {"params": i})
+        assert_equal(data, expect)
 
 
 async def test_estimatefee(protocol, writer, method):
@@ -147,6 +160,19 @@ async def test_scripthash_get_balance(protocol, writer, method):
         data = await protocol.scripthash_get_balance(writer, {"params": i})
         assert_equal(data["result"], expect["result"])
 
+    params = [
+        [],
+        ["foobar"],
+        [
+            "c036b0ff3ad79662cd517cd5fe1fa0af07377b9262d16f276f11ced69aaa6921",
+            42,
+        ],
+    ]
+    for i in params:
+        expect = JsonRPCError.invalidparams()
+        data = await protocol.scripthash_get_balance(writer, {"params": i})
+        assert_equal(data, expect)
+
 
 async def test_scripthash_get_history(protocol, writer, method):
     params = [
@@ -157,6 +183,19 @@ async def test_scripthash_get_history(protocol, writer, method):
         expect = get_expect(method, i)
         data = await protocol.scripthash_get_history(writer, {"params": i})
         assert_equal(data["result"], expect["result"])
+
+    params = [
+        [],
+        ["foobar"],
+        [
+            "c036b0ff3ad79662cd517cd5fe1fa0af07377b9262d16f276f11ced69aaa6921",
+            42,
+        ],
+    ]
+    for i in params:
+        expect = JsonRPCError.invalidparams()
+        data = await protocol.scripthash_get_history(writer, {"params": i})
+        assert_equal(data, expect)
 
 
 async def test_scripthash_listunspent(protocol, writer, method):
@@ -172,6 +211,19 @@ async def test_scripthash_listunspent(protocol, writer, method):
         data = await protocol.scripthash_listunspent(writer, {"params": i})
         assert_equal(data["result"], srt)
 
+    params = [
+        [],
+        ["foobar"],
+        [
+            "c036b0ff3ad79662cd517cd5fe1fa0af07377b9262d16f276f11ced69aaa6921",
+            42,
+        ],
+    ]
+    for i in params:
+        expect = JsonRPCError.invalidparams()
+        data = await protocol.scripthash_listunspent(writer, {"params": i})
+        assert_equal(data, expect)
+
 
 async def test_scripthash_subscribe(protocol, writer, method):
     params = [
@@ -182,6 +234,19 @@ async def test_scripthash_subscribe(protocol, writer, method):
         data = await protocol.scripthash_subscribe(writer, {"params": i})
         assert_equal(data["result"], expect["result"])
 
+    params = [
+        [],
+        ["foobar"],
+        [
+            "c036b0ff3ad79662cd517cd5fe1fa0af07377b9262d16f276f11ced69aaa6921",
+            42,
+        ],
+    ]
+    for i in params:
+        expect = JsonRPCError.invalidparams()
+        data = await protocol.scripthash_subscribe(writer, {"params": i})
+        assert_equal(data, expect)
+
 
 async def test_scripthash_unsubscribe(protocol, writer, method):
     # Here blockstream doesn't even care
@@ -191,6 +256,19 @@ async def test_scripthash_unsubscribe(protocol, writer, method):
     for i in params:
         data = await protocol.scripthash_unsubscribe(writer, {"params": i})
         assert data["result"] is True
+
+    params = [
+        [],
+        ["foobar"],
+        [
+            "c036b0ff3ad79662cd517cd5fe1fa0af07377b9262d16f276f11ced69aaa6921",
+            42,
+        ],
+    ]
+    for i in params:
+        expect = JsonRPCError.invalidparams()
+        data = await protocol.scripthash_unsubscribe(writer, {"params": i})
+        assert_equal(data, expect)
 
 
 async def test_transaction_get(protocol, writer, method):
@@ -249,6 +327,38 @@ async def test_peers_subscribe(protocol, writer, method):
     assert_equal(data["result"], [])
 
 
+async def test_send_notification(protocol, writer, method):
+    params = ["sent notification"]
+    expect = (json.dumps({
+        "jsonrpc": "2.0",
+        "method": method,
+        "params": params
+    }).encode("utf-8") + b"\n")
+    await protocol._send_notification(writer, method, params)
+    assert_equal(writer.mock, expect)
+
+
+async def test_send_reply(protocol, writer, method):
+    error = {"error": {"code": 42, "message": 42}}
+    result = {"result": 42}
+
+    expect = (json.dumps({
+        "jsonrpc": "2.0",
+        "error": error["error"],
+        "id": None
+    }).encode("utf-8") + b"\n")
+    await protocol._send_reply(writer, error, None)
+    assert_equal(writer.mock, expect)
+
+    expect = (json.dumps({
+        "jsonrpc": "2.0",
+        "result": result["result"],
+        "id": 42
+    }).encode("utf-8") + b"\n")
+    await protocol._send_reply(writer, result, {"id": 42})
+    assert_equal(writer.mock, expect)
+
+
 class MockWriter(asyncio.StreamWriter):  # pragma: no cover
     """Mock class for StreamWriter"""
 
@@ -256,6 +366,7 @@ class MockWriter(asyncio.StreamWriter):  # pragma: no cover
         self.mock = None
 
     def write(self, data):
+        self.mock = data
         return True
 
     async def drain(self):
@@ -287,6 +398,8 @@ orchestration = {
     "server.donation_address": test_donation_address,
     # "server.features": test_server_features,
     "server.peers_subscribe": test_peers_subscribe,
+    "_send_notification": test_send_notification,
+    "_send_reply": test_send_reply,
 }
 
 
