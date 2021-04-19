@@ -380,7 +380,14 @@ class Client:
         correlated_points = Client.__correlate(points)
         # self.log.debug("history points: %s", points)
         # self.log.debug("history correlated: %s", correlated_points)
-        return error_code, self._sort_correlated_points(correlated_points)
+
+        # BUG: In libbitcoin v4 sometimes transactions mess up and double
+        # The following is not a very efficient solution
+        correlated = [
+            i for n, i in enumerate(correlated_points)
+            if i not in correlated_points[n + 1:]
+        ]
+        return error_code, self._sort_correlated_points(correlated)
 
     @staticmethod
     def _sort_correlated_points(points):

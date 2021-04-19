@@ -140,6 +140,7 @@ async def test_scripthash_get_balance(protocol, writer, method):
     params = [
         ["c036b0ff3ad79662cd517cd5fe1fa0af07377b9262d16f276f11ced69aaa6921"],
         ["92dd1eb7c042956d3dd9185a58a2578f61fee91347196604540838ccd0f8c08c"],
+        ["b97b504af8fcf94a47d3ae5a346d38220f0751732d9b89a413568bfbf4b36ec6"],
     ]
     for i in params:
         expect = get_expect(method, i)
@@ -150,6 +151,7 @@ async def test_scripthash_get_balance(protocol, writer, method):
 async def test_scripthash_get_history(protocol, writer, method):
     params = [
         ["c036b0ff3ad79662cd517cd5fe1fa0af07377b9262d16f276f11ced69aaa6921"],
+        ["b97b504af8fcf94a47d3ae5a346d38220f0751732d9b89a413568bfbf4b36ec6"],
     ]
     for i in params:
         expect = get_expect(method, i)
@@ -161,6 +163,7 @@ async def test_scripthash_listunspent(protocol, writer, method):
     params = [
         ["c036b0ff3ad79662cd517cd5fe1fa0af07377b9262d16f276f11ced69aaa6921"],
         ["92dd1eb7c042956d3dd9185a58a2578f61fee91347196604540838ccd0f8c08c"],
+        ["b97b504af8fcf94a47d3ae5a346d38220f0751732d9b89a413568bfbf4b36ec6"],
     ]
     for i in params:
         # Blockstream is broken here and doesn't return in ascending order.
