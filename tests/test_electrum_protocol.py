@@ -399,11 +399,21 @@ async def test_send_reply(protocol, writer, method):
     assert_equal(writer.mock, expect)
 
 
+class MockTransport:
+
+    def __init__(self):
+        self.peername = ("foo", 42)
+
+    def get_extra_info(self, param):
+        return self.peername
+
+
 class MockWriter(asyncio.StreamWriter):  # pragma: no cover
     """Mock class for StreamWriter"""
 
     def __init__(self):
         self.mock = None
+        self._transport = MockTransport()
 
     def write(self, data):
         self.mock = data
@@ -454,6 +464,8 @@ async def main():
     log = getLogger("obelisktest")
     protocol = ElectrumProtocol(log, "testnet", libbitcoin, {})
     writer = MockWriter()
+
+    protocol.peers[protocol._get_peer(writer)] = {"tasks": [], "sh": {}}
 
     for func in orchestration:
         try:

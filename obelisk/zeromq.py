@@ -266,11 +266,11 @@ class Client:
         socket.connect(self._endpoints["query"])
         return socket
 
-    async def _subscription_request(self, command, data):
+    async def _subscription_request(self, command, data, queue):
         request = await self._request(command, data)
-        request.queue = asyncio.Queue()
+        request.queue = queue
         error_code, _ = await self._wait_for_response(request)
-        return error_code, request.queue
+        return error_code
 
     async def _simple_request(self, command, data):
         return await self._wait_for_response(await self._request(command, data))
@@ -345,11 +345,11 @@ class Client:
             return error_code, None
         return error_code, data
 
-    async def subscribe_scripthash(self, scripthash):
+    async def subscribe_scripthash(self, scripthash, queue):
         """Subscribe to scripthash"""
         command = b"subscribe.key"
         decoded_address = unhexlify(scripthash)
-        return await self._subscription_request(command, decoded_address)
+        return await self._subscription_request(command, decoded_address, queue)
 
     async def unsubscribe_scripthash(self, scripthash):
         """Unsubscribe scripthash"""
