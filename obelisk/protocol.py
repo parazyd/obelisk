@@ -555,6 +555,9 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         tx_hash = query["params"][0]
         verbose = query["params"][1] if len(query["params"]) > 1 else False
 
+        if not is_hex_str(tx_hash):
+            return JsonRPCError.invalidparams()
+
         # _ec, rawtx = await self.bx.fetch_blockchain_transaction(tx_hash)
         _ec, rawtx = await self.bx.fetch_mempool_transaction(tx_hash)
         if _ec and _ec != 0 and _ec != ErrorCode.not_found.value:
@@ -563,7 +566,8 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
 
         # Behaviour is undefined in spec
         if not rawtx:
-            return {"result": None}
+            return JsonRPCError.internalerror()
+            # return {"result": None}
 
         if verbose:
             # TODO: Help needed

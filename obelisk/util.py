@@ -30,7 +30,7 @@ def is_non_negative_integer(val):
     """Check if val is of type int and non-negative"""
     if is_integer(val):
         return val >= 0
-    return False  # pragma: no cover
+    return False
 
 
 def is_boolean(val):
@@ -38,7 +38,7 @@ def is_boolean(val):
     return isinstance(val, bool)
 
 
-def is_hex_str(text):  # pragma: no cover
+def is_hex_str(text):
     """Check if text is a hex string"""
     if not isinstance(text, str):
         return False
@@ -52,7 +52,7 @@ def is_hex_str(text):  # pragma: no cover
     return True
 
 
-def is_hash256_str(text):  # pragma: no cover
+def is_hash256_str(text):
     """Check if text is a sha256 hash"""
     if not isinstance(text, str):
         return False

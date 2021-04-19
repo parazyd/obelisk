@@ -92,6 +92,16 @@ async def test_server_version(protocol, writer, method):
     data = await protocol.server_version(writer, {"params": params})
     assert_equal(data["result"], expect["result"])
 
+    params = ["obelisk", "0.0"]
+    expect = JsonRPCError.protonotsupported()
+    data = await protocol.server_version(writer, {"params": params})
+    assert_equal(data, expect)
+
+    params = ["obelisk"]
+    expect = JsonRPCError.invalidparams()
+    data = await protocol.server_version(writer, {"params": params})
+    assert_equal(data, expect)
+
 
 async def test_ping(protocol, writer, method):
     params = []
@@ -280,6 +290,12 @@ async def test_transaction_get(protocol, writer, method):
         data = await protocol.transaction_get(writer, {"params": i})
         assert_equal(data["result"], expect["result"])
 
+    params = [[], [1], ["foo"], ["dead beef"]]
+    for i in params:
+        expect = JsonRPCError.invalidparams()
+        data = await protocol.transaction_get(writer, {"params": i})
+        assert_equal(data, expect)
+
 
 async def test_transaction_get_merkle(protocol, writer, method):
     params = [
@@ -293,6 +309,24 @@ async def test_transaction_get_merkle(protocol, writer, method):
         data = await protocol.transaction_get_merkle(writer, {"params": i})
         assert_equal(data["result"], expect["result"])
 
+    params = [
+        [],
+        ["foo", 1],
+        [3, 1],
+        [
+            "a9c3c22cc2589284288b28e802ea81723d649210d59dfa7e03af00475f4cec20",
+            -4,
+        ],
+        [
+            "a9c3c22cc2589284288b28e802ea81723d649210d59dfa7e03af00475f4cec20",
+            "foo",
+        ],
+    ]
+    for i in params:
+        expect = JsonRPCError.invalidparams()
+        data = await protocol.transaction_get_merkle(writer, {"params": i})
+        assert_equal(data, expect)
+
 
 async def test_transaction_id_from_pos(protocol, writer, method):
     params = [[1970700, 28], [1970700, 28, True]]
@@ -300,6 +334,12 @@ async def test_transaction_id_from_pos(protocol, writer, method):
         expect = get_expect(method, i)
         data = await protocol.transaction_id_from_pos(writer, {"params": i})
         assert_equal(data["result"], expect["result"])
+
+    params = [[123], [-1, 1], [1, -1], [3, 42, 4]]
+    for i in params:
+        expect = JsonRPCError.invalidparams()
+        data = await protocol.transaction_id_from_pos(writer, {"params": i})
+        assert_equal(data, expect)
 
 
 async def test_get_fee_histogram(protocol, writer, method):
