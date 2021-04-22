@@ -54,7 +54,7 @@ def get_expect(method, params):
         "json-rpc": "2.0",
         "id": create_random_id(),
         "method": method,
-        "params": params,
+        "params": params
     }
     bs.send(json.dumps(req).encode("utf-8") + b"\n")
     recv_buf = bytearray()
