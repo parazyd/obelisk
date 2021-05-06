@@ -25,6 +25,7 @@ from traceback import print_exc
 
 from obelisk.errors_jsonrpc import JsonRPCError
 from obelisk.errors_libbitcoin import ZMQError
+from obelisk.mempool_api import get_mempool_fee_estimates
 from obelisk.merkle import merkle_branch, merkle_branch_and_root
 from obelisk.util import (
     bh2u,
@@ -70,9 +71,10 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         self.block_queue = None
         self.peers = {}
 
-        if chain == "mainnet":  # pragma: no cover
+        self.chain = chain
+        if self.chain == "mainnet":  # pragma: no cover
             self.genesis = "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
-        elif chain == "testnet":
+        elif self.chain == "testnet":
             self.genesis = "000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943"
         else:
             raise ValueError(f"Invalid chain '{chain}'")  # pragma: no cover
@@ -289,13 +291,38 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
 
         return {"result": resp}
 
-    async def estimatefee(self, writer, query):  # pylint: disable=W0613
+    async def estimatefee(self, writer, query):  # pylint: disable=W0613,disable=R0911
         """Method: blockchain.estimatefee
         Return the estimated transaction fee per kilobyte for a transaction
         to be confirmed within a certain number of blocks.
         """
-        # TODO: Help wanted
-        return {"result": -1}
+        # NOTE: This solution is using the mempool.space API.
+        # Let's try to eventually solve it with some internal logic.
+        if "params" not in query or len(query["params"]) != 1:
+            return JsonRPCError.invalidparams()
+
+        num_blocks = query["params"][0]
+        if not is_non_negative_integer(num_blocks):
+            return JsonRPCError.invalidparams()
+
+        if self.chain == "testnet":
+            return {"result": 0.00001}
+
+        fee_dict = get_mempool_fee_estimates()
+        if not fee_dict:
+            return {"result": -1}
+
+        # Good enough.
+        if num_blocks < 3:
+            return {"result": "{:.8f}".format(fee_dict["fastestFee"] / 100000)}
+
+        if num_blocks < 6:
+            return {"result": "{:.8f}".format(fee_dict["halfHourFee"] / 100000)}
+
+        if num_blocks < 10:
+            return {"result": "{:.8f}".format(fee_dict["hourFee"] / 100000)}
+
+        return {"result": "{:.8f}".format(fee_dict["minimumFee"] / 100000)}
 
     async def header_notifier(self, writer):
         self.block_queue = asyncio.Queue()
