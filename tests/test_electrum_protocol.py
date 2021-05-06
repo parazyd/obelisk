@@ -140,7 +140,7 @@ async def test_block_headers(protocol, writer, method):
 
 async def test_estimatefee(protocol, writer, method):
     params = [2]
-    expect = -1
+    expect = 0.00001
     data = await protocol.estimatefee(writer, {"params": params})
     assert_equal(data["result"], expect)
 
