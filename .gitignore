@@ -2,3 +2,7 @@
 .coverage
 coverage.xml
 htmlcov
+build
+dist
+*.egg-info
+*.swp

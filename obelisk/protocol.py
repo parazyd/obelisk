@@ -25,7 +25,7 @@ from traceback import print_exc
 
 from obelisk.errors_jsonrpc import JsonRPCError
 from obelisk.errors_libbitcoin import ZMQError
-from obelisk.mempool_api import get_mempool_fee_estimates
+from obelisk.mempool_api import get_mempool_fee_estimates, get_fee_histogram
 from obelisk.merkle import merkle_branch, merkle_branch_and_root
 from obelisk.util import (
     bh2u,
@@ -698,8 +698,16 @@ class ElectrumProtocol(asyncio.Protocol):  # pylint: disable=R0904,R0902
         Return a histogram of the fee rates paid by transactions in the
         memory pool, weighted by transaction size.
         """
-        # TODO: Help wanted
-        return {"result": [[0, 0]]}
+        # NOTE: This solution is using the mempool.space API.
+        # Let's try to eventually solve it with some internal logic.
+        if self.chain == "testnet":
+            return {"result": [[0, 0]]}
+
+        fee_hist = get_fee_histogram()
+        if not fee_dict:
+            return {"result": [[0, 0]]}
+
+        return {"result": fee_hist}
 
     async def add_peer(self, writer, query):  # pylint: disable=W0613
         """Method: server.add_peer
