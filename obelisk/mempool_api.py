@@ -28,3 +28,14 @@ def get_mempool_fee_estimates():
         return None
 
     return json.load(res)
+
+
+def get_fee_histogram():
+    conn = HTTPSConnection("mempool.space")
+    conn.request("GET", "/api/mempool")
+    res = conn.getresponse()
+
+    if res.status != 200:
+        return None
+
+    return json.load(res)["fee_histogram"]
